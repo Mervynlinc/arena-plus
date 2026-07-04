@@ -1,5 +1,4 @@
 import { TouchableOpacity, Text } from 'react-native';
-import { colors } from '@/constants/theme';
 
 interface Props {
   label: string;
@@ -12,22 +11,10 @@ export default function CategoryPill({ label, active, onPress }: Props) {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      style={{
-        paddingVertical: 9,
-        paddingHorizontal: 16,
-        borderRadius: 100,
-        backgroundColor: active ? colors.accent : colors.bgCard2,
-        borderWidth: active ? 0 : 1,
-        borderColor: colors.stroke,
-      }}
+      className={`py-[9px] px-4 rounded-full ${active ? 'bg-accent' : 'bg-bgCard2 border border-stroke'}`}
     >
       <Text
-        style={{
-          fontFamily: 'Inter',
-          fontWeight: '600',
-          fontSize: 13,
-          color: active ? colors.bg : colors.textMuted,
-        }}
+        className={`font-inter font-semibold text-[13px] ${active ? 'text-bg' : 'text-textMuted'}`}
       >
         {label}
       </Text>

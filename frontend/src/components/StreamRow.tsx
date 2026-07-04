@@ -1,5 +1,4 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { colors } from '@/constants/theme';
 
 interface Props {
   serverName: string;
@@ -14,48 +13,23 @@ export default function StreamRow({ serverName, quality, language, tag, onPress 
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{
-        padding: 14,
-        paddingLeft: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: colors.bgCard2,
-        borderRadius: 16,
-        width: 342,
-      }}
+      className="p-[14px] pl-4 flex-row justify-between items-center bg-bgCard2 rounded-2xl w-[342px]"
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 12,
-            backgroundColor: '#242429',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 18, color: colors.accent }}>▶</Text>
+      <View className="flex-row items-center gap-3">
+        <View className="w-10 h-10 rounded-xl justify-center items-center" style={{ backgroundColor: '#242429' }}>
+          <Text className="text-lg text-accent">▶</Text>
         </View>
-        <View style={{ gap: 5 }}>
-          <Text style={{ fontFamily: 'Inter', fontWeight: '600', fontSize: 14, color: colors.text }}>
+        <View className="gap-[5px]">
+          <Text className="font-inter font-semibold text-sm text-text">
             {serverName}
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View
-              style={{
-                paddingHorizontal: 6,
-                paddingVertical: 3,
-                backgroundColor: colors.greenBadge,
-                borderRadius: 5,
-              }}
-            >
-              <Text style={{ fontFamily: 'Inter', fontWeight: '700', fontSize: 9, color: colors.bg }}>
+          <View className="flex-row items-center gap-[6px]">
+            <View className="px-[6px] py-[3px] bg-greenBadge rounded-[5px]">
+              <Text className="font-inter font-bold text-[9px] text-bg">
                 {quality}
               </Text>
             </View>
-            <Text style={{ fontFamily: 'Inter', fontWeight: '500', fontSize: 11, color: colors.textSecondary }}>
+            <Text className="font-inter font-medium text-[11px] text-textSecondary">
               {language} · {tag}
             </Text>
           </View>
@@ -64,14 +38,9 @@ export default function StreamRow({ serverName, quality, language, tag, onPress 
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.7}
-        style={{
-          paddingVertical: 10,
-          paddingHorizontal: 18,
-          backgroundColor: colors.accent,
-          borderRadius: 12,
-        }}
+        className="py-[10px] px-[18px] bg-accent rounded-xl"
       >
-        <Text style={{ fontFamily: 'Inter', fontWeight: '700', fontSize: 13, color: colors.bg }}>
+        <Text className="font-inter font-bold text-[13px] text-bg">
           Watch
         </Text>
       </TouchableOpacity>

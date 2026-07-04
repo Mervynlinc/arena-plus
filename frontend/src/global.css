@@ -1,1 +1,24 @@
-@tailwind utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@layer theme {
+  @theme {
+    --color-bg: #0A0A0C;
+    --color-bgCard: #141417;
+    --color-bgCard2: #1C1C20;
+    --color-stroke: #2A2A2F;
+    --color-accent: #CFFF3D;
+    --color-text: #FFFFFF;
+    --color-textSecondary: #5C5C63;
+    --color-textMuted: #9A9AA3;
+    --color-red: #E52633;
+    --color-blue: #1A408C;
+    --color-yellow: #FAD933;
+    --color-maroon: #800D26;
+    --color-liveRed: #E5344E;
+    --color-greenBadge: #8FA82B;
+
+    --font-inter: "Inter", sans-serif;
+  }
+}

@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "expo-tailwind-setup": {
+      "source": "expo/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/expo/skills/expo-tailwind-setup/SKILL.md",
+      "computedHash": "6a3faa984445c88c4a034f5443ed4c3be8091ca57a1c5ec345c995c7201fcfaa"
+    },
     "impeccable": {
       "source": "pbakaus/impeccable",
       "sourceType": "github",

@@ -1,31 +1,6 @@
 import { Tabs } from 'expo-router';
-import { View, Text } from 'react-native';
+import { House, CalendarDays, TvMinimalPlay, Settings } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
-
-function TabIcon({ focused, label }: { focused: boolean; label: string }) {
-  return (
-    <View style={{ alignItems: 'center', gap: 4, paddingTop: 8 }}>
-      <View
-        style={{
-          width: 24,
-          height: 24,
-          backgroundColor: colors.stroke,
-          borderRadius: 6,
-        }}
-      />
-      <Text
-        style={{
-          fontFamily: 'Inter',
-          fontWeight: '600' as const,
-          fontSize: 11,
-          color: focused ? colors.accent : colors.textSecondary,
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
 
 export default function TabLayout() {
   return (
@@ -36,35 +11,43 @@ export default function TabLayout() {
           backgroundColor: colors.bgCard,
           borderTopColor: colors.stroke,
           borderTopWidth: 1,
-          height: 88,
-          paddingBottom: 28,
-          paddingHorizontal: 24,
+          height: 60,
         },
-        tabBarShowLabel: false,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontFamily: 'Inter',
+          fontWeight: '600',
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} label="Home" />,
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => <House size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="matches"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} label="Matches" />,
+          title: 'Matches',
+          tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="watch"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} label="Watch" />,
+          title: 'Watch',
+          tabBarIcon: ({ color, size }) => <TvMinimalPlay size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} label="Settings" />,
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
     </Tabs>

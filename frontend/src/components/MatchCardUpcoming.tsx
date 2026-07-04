@@ -28,45 +28,33 @@ export default function MatchCardUpcoming({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={{
-        padding: 14,
-        paddingHorizontal: 16,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: colors.bgCard2,
-        borderColor: colors.stroke,
-        borderWidth: 1,
-        borderRadius: 18,
-        width: 358,
-        height: 76,
-      }}
+      className="p-[14px] px-4 flex-row justify-between items-center bg-bgCard2 border border-stroke rounded-[18px] w-[358px] h-[76px]"
     >
-      <View style={{ padding: 8, paddingHorizontal: 12, alignItems: 'center', gap: 2 }}>
-        <Text style={{ fontFamily: 'Inter', fontWeight: '700', fontSize: 14, color: colors.accent }}>
+      <View className="p-2 px-3 items-center gap-[2px]">
+        <Text className="font-inter font-bold text-sm text-accent">
           {time}
         </Text>
-        <Text style={{ fontFamily: 'Inter', fontWeight: '500', fontSize: 10, color: colors.textSecondary }}>
+        <Text className="font-inter font-medium text-[10px] text-textSecondary">
           {date}
         </Text>
       </View>
-      <View style={{ gap: 6 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: homeColor }} />
-          <Text style={{ fontFamily: 'Inter', fontWeight: '600', fontSize: 13, color: colors.text }}>
+      <View className="gap-[6px]">
+        <View className="flex-row items-center gap-2">
+          <View className="w-[18px] h-[18px] rounded-full" style={{ backgroundColor: homeColor }} />
+          <Text className="font-inter font-semibold text-[13px] text-text">
             {homeTeam}
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: awayColor }} />
-          <Text style={{ fontFamily: 'Inter', fontWeight: '600', fontSize: 13, color: colors.text }}>
+        <View className="flex-row items-center gap-2">
+          <View className="w-[18px] h-[18px] rounded-full" style={{ backgroundColor: awayColor }} />
+          <Text className="font-inter font-semibold text-[13px] text-text">
             {awayTeam}
           </Text>
         </View>
       </View>
-      <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-        <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: leagueColor }} />
-        <Text style={{ fontFamily: 'Inter', fontWeight: '500', fontSize: 10, color: colors.textSecondary }}>
+      <View className="flex-row gap-1 items-center">
+        <View className="w-5 h-5 rounded-full" style={{ backgroundColor: leagueColor }} />
+        <Text className="font-inter font-medium text-[10px] text-textSecondary">
           {league}
         </Text>
       </View>

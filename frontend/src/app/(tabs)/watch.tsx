@@ -1,10 +1,9 @@
 import { View, Text } from 'react-native';
-import { colors } from '@/constants/theme';
 
 export default function WatchScreen() {
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontFamily: 'Inter', fontWeight: '700', fontSize: 17, color: colors.textSecondary }}>
+    <View className="flex-1 bg-bg justify-center items-center">
+      <Text className="font-inter font-bold text-[17px] text-textSecondary">
         Watch
       </Text>
     </View>

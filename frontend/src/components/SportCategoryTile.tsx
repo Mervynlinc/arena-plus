@@ -1,6 +1,5 @@
 import { TouchableOpacity, Text, View } from 'react-native';
 import IconPlaceholder from './IconPlaceholder';
-import { colors } from '@/constants/theme';
 
 interface Props {
   label: string;
@@ -9,24 +8,18 @@ interface Props {
 }
 
 export default function SportCategoryTile({ label, iconColor, onPress }: Props) {
+  const words = label.split(' ');
+  const displayLabel = words.slice(0, 2).join('\n') + (words.length > 2 ? '...' : '');
+
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      style={{
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: colors.bgCard2,
-        borderColor: colors.stroke,
-        borderWidth: 1,
-        borderRadius: 18,
-      }}
+      className="w-24 py-[14px] items-center gap-2 bg-bgCard2 border border-stroke rounded-[18px]"
     >
-      <IconPlaceholder size={22} color={iconColor ?? colors.stroke} borderRadius={6} />
-      <Text style={{ fontFamily: 'Inter', fontWeight: '600', fontSize: 12, color: colors.textMuted }}>
-        {label}
+      <IconPlaceholder size={22} color={iconColor ?? '#2A2A2F'} borderRadius={6} />
+      <Text className="font-inter font-semibold text-xs text-textMuted text-center">
+        {displayLabel}
       </Text>
     </TouchableOpacity>
   );
