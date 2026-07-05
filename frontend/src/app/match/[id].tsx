@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/constants/theme';
 import StreamRow from '@/components/StreamRow';
-import { fetchStreams, posterUrl, Stream, Match } from '@/lib/api';
+import { fetchStreams, posterUrl, badgeUrl, Stream, Match } from '@/lib/api';
 
 export default function MatchDetailScreen() {
   const { match: matchJson } = useLocalSearchParams<{ id: string; match?: string }>();
@@ -74,7 +74,11 @@ export default function MatchDetailScreen() {
               </View>
               <View className="flex-row items-center gap-6">
                 <View className="items-center gap-3">
-                  <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
+                  {badgeUrl(match.teams.home?.badge) ? (
+                    <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-20 h-20 rounded-full" resizeMode="contain" />
+                  ) : (
+                    <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
+                  )}
                   <Text className="font-inter font-bold text-base text-text w-28 text-center" numberOfLines={2}>
                     {match.teams.home?.name}
                   </Text>
@@ -90,7 +94,11 @@ export default function MatchDetailScreen() {
                   </Text>
                 </View>
                 <View className="items-center gap-3">
-                  <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
+                  {badgeUrl(match.teams.away?.badge) ? (
+                    <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-20 h-20 rounded-full" resizeMode="contain" />
+                  ) : (
+                    <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
+                  )}
                   <Text className="font-inter font-bold text-base text-text w-28 text-center" numberOfLines={2}>
                     {match.teams.away?.name}
                   </Text>

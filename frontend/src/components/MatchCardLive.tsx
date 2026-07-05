@@ -12,14 +12,15 @@ function TeamLogo({ color }: TeamLogoProps) {
 
 interface Props {
   league: string;
-  minute: string;
+  minute?: string;
   homeTeam: string;
   homeColor: string;
   awayTeam: string;
   awayColor: string;
-  homeScore: number;
-  awayScore: number;
+  homeScore?: number;
+  awayScore?: number;
   onPress: () => void;
+  sportName?: string;
 }
 
 export default function MatchCardLive({
@@ -32,6 +33,7 @@ export default function MatchCardLive({
   homeScore,
   awayScore,
   onPress,
+  sportName,
 }: Props) {
   return (
     <TouchableOpacity
@@ -43,12 +45,20 @@ export default function MatchCardLive({
         <Text className="font-inter font-semibold text-xs text-textMuted">
           {league}
         </Text>
-        <View className="flex-row px-2 py-1 items-center gap-[5px] bg-text rounded-full">
-          <View className="w-[6px] h-[6px] rounded-[3px] bg-text" />
-          <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-text">
-            LIVE {minute}
-          </Text>
-        </View>
+        {sportName ? (
+          <View className="px-3 py-1 rounded-full bg-bgCard border border-stroke">
+            <Text className="font-inter font-semibold text-[10px] tracking-[0.3px] text-textSecondary">
+              {sportName}
+            </Text>
+          </View>
+        ) : (
+          <View className="flex-row px-2 py-1 items-center gap-[5px] bg-text rounded-full">
+            <View className="w-[6px] h-[6px] rounded-[3px] bg-text" />
+            <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-text">
+              LIVE {minute}
+            </Text>
+          </View>
+        )}
       </View>
       <View className="flex-row justify-between items-center">
         <View className="items-center gap-2">
@@ -59,13 +69,13 @@ export default function MatchCardLive({
         </View>
         <View className="flex-row items-center gap-3">
           <Text className="font-inter font-extrabold text-[28px] text-text">
-            {homeScore}
+            {homeScore ?? '-'}
           </Text>
           <Text className="font-inter font-bold text-xl text-textSecondary">
             -
           </Text>
           <Text className="font-inter font-extrabold text-[28px] text-text">
-            {awayScore}
+            {awayScore ?? '-'}
           </Text>
         </View>
         <View className="items-center gap-2">

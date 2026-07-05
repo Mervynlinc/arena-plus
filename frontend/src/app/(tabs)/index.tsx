@@ -4,9 +4,8 @@ import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import SportCategoryTile from '@/components/SportCategoryTile';
-import MatchCardLive from '@/components/MatchCardLive';
-import MatchCardUpcoming from '@/components/MatchCardUpcoming';
-import { fetchSports, Sport } from '@/lib/api';
+import MatchCardPoster from '@/components/MatchCardPoster';
+import { fetchSports, fetchLiveMatches, fetchPopularMatchesBySport, Match, Sport } from '@/lib/api';
 
 const SPORT_COLORS: Record<string, string> = {
   football: colors.accent,
@@ -28,14 +27,51 @@ const SPORT_COLORS: Record<string, string> = {
 
 export default function HomeScreen() {
   const [sports, setSports] = useState<Sport[]>([]);
+  const [liveMatches, setLiveMatches] = useState<Match[]>([]);
+  const [popularMatches, setPopularMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveLoading, setLiveLoading] = useState(true);
+  const [popularLoading, setPopularLoading] = useState(true);
+  const [sportNameMap, setSportNameMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchSports()
-      .then(setSports)
+      .then((data) => {
+        setSports(data);
+        const map: Record<string, string> = {};
+        data.forEach((s) => { map[s.id] = s.name; });
+        setSportNameMap(map);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchLiveMatches()
+      .then(setLiveMatches)
+      .catch(console.error)
+      .finally(() => setLiveLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (sports.length === 0) return;
+    Promise.all(
+      sports.map((s) =>
+        fetchPopularMatchesBySport(s.id).catch(() => [] as Match[])
+      )
+    )
+      .then((results) => {
+        const seen = new Set<string>();
+        const all = results.flat().filter((m) => {
+          if (seen.has(m.id)) return false;
+          seen.add(m.id);
+          return true;
+        });
+        setPopularMatches(all);
+      })
+      .catch(console.error)
+      .finally(() => setPopularLoading(false));
+  }, [sports]);
 
   return (
     <View className="flex-1 bg-bg">
@@ -47,13 +83,12 @@ export default function HomeScreen() {
                 Good evening
               </Text>
               <Text className="font-inter font-bold text-xl text-text">
-                Welcome back, Brown
+                Welcome back
               </Text>
             </View>
-            <View className="w-11 h-11 rounded-full bg-bgCard2 border border-accent border-[1.5px]" />
           </View>
           <View className="px-6 mb-7">
-            <View className="flex-row items-center gap-[10px] py-[14px] px-4 bg-bgCard2 border border-stroke rounded-2xl w-[342px] h-12">
+            <View className="flex-row items-center gap-[10px] py-[14px] px-4 bg-bgCard2 border border-stroke rounded-2xl h-14">
               <Search size={18} color={colors.textSecondary} />
               <Text className="font-inter font-normal text-[13px] text-textSecondary">
                 Search teams, leagues...
@@ -93,50 +128,56 @@ export default function HomeScreen() {
                 See all
               </Text>
             </View>
-            <MatchCardLive
-              league="Premier League"
-              minute="67'"
-              homeTeam="Arsenal"
-              homeColor={colors.red}
-              awayTeam="Chelsea"
-              awayColor={colors.blue}
-              homeScore={2}
-              awayScore={1}
-              onPress={() => router.push('/match/1')}
-            />
-          </View>
-          <View className="px-6 gap-[14px]">
-            <View className="flex-row justify-between items-center">
-              <Text className="font-inter font-bold text-[17px] text-text">
-                Upcoming
+            {liveLoading ? (
+              <ActivityIndicator color={colors.accent} />
+            ) : liveMatches.length === 0 ? (
+              <Text className="font-inter text-sm text-textSecondary pr-6">
+                No live matches currently
               </Text>
-              <Text className="font-inter font-semibold text-[13px] text-accent">
-                See all
-              </Text>
-            </View>
-            <View className="gap-3">
-              <MatchCardUpcoming
-                time="18:30"
-                date="Today"
-                homeTeam="Real Madrid"
-                homeColor={colors.yellow}
-                awayTeam="Barcelona"
-                awayColor={colors.maroon}
-                league="LaLiga"
-                onPress={() => router.push('/match/2')}
-              />
-              <MatchCardUpcoming
-                time="20:00"
-                date="Today"
-                homeTeam="Man United"
-                homeColor="#DA291C"
-                awayTeam="Man City"
-                awayColor="#6CABDD"
-                league="EPL"
-                onPress={() => router.push('/match/3')}
-              />
-            </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {liveMatches.map((match) => (
+                    <MatchCardPoster
+                      key={match.id}
+                      match={match}
+                      badge={
+                        <View className="px-2 py-1 bg-bgCard border border-stroke rounded-full">
+                          <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-textSecondary">
+                            {sportNameMap[match.category] ?? match.category}
+                          </Text>
+                        </View>
+                      }
+                    />
+                  ))}
+                </View>
+              </ScrollView>
+            )}
           </View>
+          <View className="pl-6 gap-[14px] mb-7">
+            <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
+              Popular
+            </Text>
+            {popularLoading ? (
+              <ActivityIndicator color={colors.accent} />
+            ) : popularMatches.length === 0 ? (
+              <Text className="font-inter text-sm text-textSecondary pr-6">
+                No popular matches
+              </Text>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {popularMatches.map((match) => (
+                    <MatchCardPoster
+                      key={match.id}
+                      match={match}
+                    />
+                  ))}
+                </View>
+              </ScrollView>
+            )}
+          </View>
+
         </View>
       </ScrollView>
     </View>

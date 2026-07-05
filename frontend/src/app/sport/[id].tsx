@@ -2,77 +2,9 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/constants/theme';
-import { fetchMatchesBySport, fetchPopularMatchesBySport, fetchLiveMatches, posterUrl, Match } from '@/lib/api';
-
-const CARD_WIDTH = 160;
-const CARD_HEIGHT = 224;
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function formatDate(timestamp: number): { date: string; time: string } {
-  const d = new Date(timestamp);
-  const now = new Date();
-  const isToday =
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear();
-  const hours = d.getHours().toString().padStart(2, '0');
-  const mins = d.getMinutes().toString().padStart(2, '0');
-  return {
-    date: isToday ? 'Today' : `${d.getDate()} ${MONTHS[d.getMonth()]}`,
-    time: `${hours}:${mins}`,
-  };
-}
-
-function CardLayout({ match, badge }: { match: Match; badge?: React.ReactNode }) {
-  const uri = posterUrl(match.poster);
-  const { time, date: dateLabel } = formatDate(match.date);
-  return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id, match: JSON.stringify(match) } })}
-      className="rounded-[18px] overflow-hidden"
-      style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-    >
-      {uri ? (
-        <Image
-          source={{ uri }}
-          className="absolute inset-0"
-          style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-          resizeMode="cover"
-        />
-      ) : (
-        <View className="flex-1 bg-bgCard2 justify-center items-center">
-          <Text className="font-inter font-semibold text-xs text-textMuted">No poster</Text>
-        </View>
-      )}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.85)']}
-        locations={[0.25, 1]}
-        className="absolute inset-0"
-        style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-      />
-      {badge && (
-        <View className="absolute top-3 left-3">{badge}</View>
-      )}
-      <View className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8">
-        <Text className="font-inter font-bold text-sm text-text leading-[18px]" numberOfLines={2}>
-          {match.title}
-        </Text>
-        <View className="flex-row items-center justify-between mt-1">
-          <Text className="font-inter font-medium text-xs text-textMuted">
-            {time}
-          </Text>
-          <Text className="font-inter font-medium text-xs text-textMuted">
-            {dateLabel}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
+import { fetchMatchesBySport, fetchPopularMatchesBySport, fetchLiveMatches, badgeUrl, Match } from '@/lib/api';
+import MatchCardPoster, { formatDate } from '@/components/MatchCardPoster';
 
 function LiveBadge() {
   return (
@@ -100,11 +32,19 @@ function MatchCard({ match }: { match: Match }) {
       {match.teams ? (
         <View className="gap-[6px]">
           <View className="flex-row items-center gap-2">
-            <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+            {badgeUrl(match.teams.home?.badge) ? (
+              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
+            ) : (
+              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+            )}
             <Text className="font-inter font-semibold text-[13px] text-text">{match.teams.home?.name}</Text>
           </View>
           <View className="flex-row items-center gap-2">
-            <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+            {badgeUrl(match.teams.away?.badge) ? (
+              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
+            ) : (
+              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+            )}
             <Text className="font-inter font-semibold text-[13px] text-text">{match.teams.away?.name}</Text>
           </View>
         </View>
@@ -179,7 +119,7 @@ export default function SportMatchesScreen() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-3 pr-6">
                   {liveMatches.map((match) => (
-                    <CardLayout key={match.id} match={match} badge={<LiveBadge />} />
+                    <MatchCardPoster key={match.id} match={match} badge={<LiveBadge />} />
                   ))}
                 </View>
               </ScrollView>
@@ -200,7 +140,7 @@ export default function SportMatchesScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View className="flex-row gap-3 pr-6">
                 {popular.map((match) => (
-                  <CardLayout key={match.id} match={match} />
+                  <MatchCardPoster key={match.id} match={match} />
                 ))}
               </View>
             </ScrollView>

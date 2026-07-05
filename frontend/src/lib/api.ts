@@ -27,6 +27,10 @@ export interface Match {
     away: MatchTeam;
   };
   sources: { source: string; id: string }[];
+  minute?: string;
+  homeScore?: number;
+  awayScore?: number;
+  league?: string;
 }
 
 interface MatchesResponse {
@@ -104,4 +108,9 @@ export async function fetchStreams(source: string, sourceId: string): Promise<St
 export function posterUrl(path: string | undefined): string | undefined {
   if (!path || !API_BASE) return undefined;
   return `${API_BASE.replace(/\/api$/, '')}${path}`;
+}
+
+export function badgeUrl(id: string | undefined): string | undefined {
+  if (!id || !API_BASE) return undefined;
+  return `${API_BASE}/images/badge/${id}.webp`;
 }
