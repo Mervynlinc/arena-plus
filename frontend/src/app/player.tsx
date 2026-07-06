@@ -1,84 +1,123 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { View, Text, TouchableOpacity, useWindowDimensions, ActivityIndicator, ScrollView } from 'react-native';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { View, Text, TouchableOpacity, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { WebView } from 'react-native-webview';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { ArrowLeft, Maximize, AlertTriangle } from 'lucide-react-native';
+import { ArrowLeft, AlertTriangle } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
-import { colors } from '@/constants/theme';
 
-const EXTRACTION_TIMEOUT = 30000;
+const LOADING_TIMEOUT = 30000;
 
-const INJECTED_JS_BEFORE = `
+const INJECTED_JS = `
 (function() {
-  var post = function(type, payload) {
-    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, payload: payload })); } catch(e) {}
-  };
-
-  var origOpen = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function(method, url) {
-    var urlStr = typeof url === 'string' ? url : '';
-    if (urlStr && (urlStr.indexOf('.m3u8') !== -1 || urlStr.indexOf('.mp4') !== -1)) {
-      post('URL_FOUND', { url: urlStr });
+  var origWarn = console.warn;
+  console.warn = function(msg) {
+    if (typeof msg === 'string' && msg.indexOf('sandbox') !== -1) {
+      return;
     }
-    return origOpen.apply(this, arguments);
+    return origWarn.apply(console, arguments);
   };
 
-  var origFetch = window.fetch;
-  window.fetch = function(url, options) {
-    var urlStr = typeof url === 'string' ? url : (url && url.url ? url.url : '');
-    if (urlStr && (urlStr.indexOf('.m3u8') !== -1 || urlStr.indexOf('.mp4') !== -1)) {
-      post('URL_FOUND', { url: urlStr });
+  function removeSandboxFromIframes() {
+    var iframes = document.querySelectorAll('iframe');
+    iframes.forEach(function(iframe) {
+      if (iframe.hasAttribute('sandbox')) {
+        iframe.removeAttribute('sandbox');
+      }
+    });
+  }
+  removeSandboxFromIframes();
+  var sandboxObserver = new MutationObserver(function() {
+    removeSandboxFromIframes();
+  });
+  if (document.body) {
+    sandboxObserver.observe(document.body, { childList: true, subtree: true });
+  }
+  setTimeout(function() { sandboxObserver.disconnect(); }, 10000);
+
+  window.open = function() { return null; };
+
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest('a');
+    if (link && link.target === '_blank') {
+      e.preventDefault();
+      link.target = '_self';
+      if (link.href && link.href.indexOf('javascript:') !== 0) {
+        window.location.href = link.href;
+      }
     }
-    return origFetch.apply(this, arguments);
-  };
-})();
-true;
-`;
+  }, true);
 
-const INJECTED_JS_AFTER = `
-(function() {
-  var post = function(type, payload) {
-    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, payload: payload })); } catch(e) {}
-  };
+  var meta = document.createElement('meta');
+  meta.name = 'viewport';
+  meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+  document.head.appendChild(meta);
+
+  document.body.style.touchAction = 'manipulation';
+  document.documentElement.style.touchAction = 'manipulation';
+
+  document.body.style.margin = '0';
+  document.body.style.padding = '0';
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.backgroundColor = '#000';
+
+  var containers = document.querySelectorAll('.player-container, #player, .video-player, [class*="player"], [id*="player"], .video-wrapper, .embed-responsive');
+  containers.forEach(function(el) {
+    el.style.width = '100vw';
+    el.style.height = '100vh';
+    el.style.position = 'fixed';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.zIndex = '9999';
+    el.style.margin = '0';
+    el.style.padding = '0';
+    el.style.maxWidth = 'none';
+    el.style.maxHeight = 'none';
+  });
+
+  var hide = 'header, nav, .header, .navbar, .nav, .sidebar, .menu, .top-bar, .banner, .footer, .ad-container, [class*="ad-"], [id*="ad-"], .ad, [class*="banner"], .cookie, .popup, [class*="popup"]';
+  document.querySelectorAll(hide).forEach(function(el) {
+    el.style.display = 'none';
+  });
+
+  var iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(iframe) {
+    iframe.removeAttribute('sandbox');
+    iframe.style.width = '100vw';
+    iframe.style.height = '100vh';
+    iframe.style.border = 'none';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.style.zIndex = '9999';
+  });
 
   setTimeout(function() {
     try {
-      var iframes = document.querySelectorAll('iframe');
-      for (var i = 0; i < iframes.length; i++) {
-        var src = iframes[i].src || '';
-        if (src.indexOf('embedhd') !== -1) {
-          post('IFRAME_FOUND', { src: src });
+      var allIframes = document.querySelectorAll('iframe');
+      for (var i = 0; i < allIframes.length; i++) {
+        var src = allIframes[i].src || allIframes[i].getAttribute('src') || '';
+        if (src.indexOf('embedhd') !== -1 && window.location.href.indexOf('embedhd') === -1) {
+          window.location.href = src;
+          return;
         }
       }
-    } catch(e) {
-      post('LOG', { msg: 'iframe scan: ' + e.message });
-    }
-  }, 1000);
+    } catch(e) {}
+  }, 2000);
 })();
 true;
 `;
 
 export default function PlayerScreen() {
-  const { url, title } = useLocalSearchParams<{ url: string; title?: string }>();
+  const { url } = useLocalSearchParams<{ url: string; title?: string }>();
   const { width, height } = useWindowDimensions();
-  const isDirectUrl = !!(url && (url.includes('.m3u8') || url.includes('.mp4')));
-  const [streamUrl, setStreamUrl] = useState<string | null>(isDirectUrl ? url : null);
-  const [loading, setLoading] = useState(!isDirectUrl);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [logs, setLogs] = useState<string[]>([]);
-  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const logsRef = useRef<string[]>([]);
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLoadRef = useRef(false);
 
-  const addLog = useCallback((msg: string) => {
-    const entry = '[' + new Date().toISOString().slice(11, 19) + '] ' + msg;
-    logsRef.current = [...logsRef.current, entry].slice(-50);
-    setLogs(logsRef.current);
-  }, []);
-
-  const player = useVideoPlayer(null, () => {});
+  const isLandscape = width > height;
 
   useEffect(() => {
     ScreenOrientation.unlockAsync();
@@ -88,102 +127,37 @@ export default function PlayerScreen() {
   }, []);
 
   useEffect(() => {
-    if (!streamUrl) return;
-    (async () => {
-      try {
-        await player.replaceAsync(streamUrl);
-        player.play();
-      } catch {}
-    })();
-  }, [streamUrl, player]);
-
-  useEffect(() => {
-    if (streamUrl) return;
-    timeoutRef.current = setTimeout(() => {
-      addLog('TIMEOUT: No stream URL captured in ' + (EXTRACTION_TIMEOUT / 1000) + 's');
-      setError('Failed to extract stream URL. Please try again.');
-      setLoading(false);
-    }, EXTRACTION_TIMEOUT);
+    loadingTimerRef.current = setTimeout(() => {
+      if (loading) {
+        setError('Stream took too long to load. Check your connection and try again.');
+        setLoading(false);
+      }
+    }, LOADING_TIMEOUT);
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
     };
-  }, [streamUrl, addLog]);
+  }, [loading]);
 
-  const handleMessage = useCallback(
-    (event: any) => {
-      try {
-        const data = JSON.parse(event.nativeEvent.data);
+  const handleLoadEnd = useCallback(() => {
+    didLoadRef.current = true;
+    setLoading(false);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+  }, []);
 
-        if (data.type === 'LOG') {
-          addLog('[WV] ' + data.payload.msg);
-          return;
-        }
-
-        if (data.type === 'IFRAME_FOUND' && data.payload?.src) {
-          addLog('[IFRAME] ' + data.payload.src);
-          if (!iframeUrl) {
-            setIframeUrl(data.payload.src);
-            addLog('[NAV] Navigating to iframe source...');
-          }
-          return;
-        }
-
-        if (data.type === 'URL_FOUND' && data.payload?.url) {
-          addLog('[!!!] MEDIA URL: ' + data.payload.url);
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          setStreamUrl(data.payload.url);
-          setLoading(false);
-        }
-      } catch {}
-    },
-    [iframeUrl, addLog]
-  );
-
-  const handleWebViewError = useCallback(() => {
-    addLog('[WV] WebView load error');
-    if (!streamUrl) {
-      setError('Failed to load stream source.');
-      setLoading(false);
-    }
-  }, [streamUrl, addLog]);
-
-  const webviewSource = iframeUrl ? { uri: iframeUrl } : { uri: url };
-  const isLandscape = width > height;
-
-  if (error && streamUrl) {
-    return (
-      <View className="flex-1 bg-black">
-        <StatusBar hidden={isLandscape} />
-        <VideoView
-          style={{ width: '100%', height: isLandscape ? height : width * (9 / 16) }}
-          player={player}
-          nativeControls
-          contentFit="contain"
-        />
-        <ScrollView className="flex-1 px-4 pt-2 bg-black/80">
-          {logs.map((log, i) => (
-            <Text key={i} className="text-[10px] font-mono text-green-400 leading-4">{log}</Text>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  }
+  const handleError = useCallback(() => {
+    setError('Failed to load stream. Please try again.');
+    setLoading(false);
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+  }, []);
 
   if (error) {
     return (
       <View className="flex-1 bg-black justify-center items-center px-8">
         <StatusBar hidden={isLandscape} />
-        <AlertTriangle size={48} color={colors.liveRed} />
-        <Text className="text-white font-inter font-semibold text-lg mt-4 text-center">{error}</Text>
-        <View className="w-full max-h-[300px] mt-4 bg-bgCard rounded-xl p-3">
-          <ScrollView>
-            {logs.map((log, i) => (
-              <Text key={i} className="text-[10px] font-mono text-green-400 leading-4">{log}</Text>
-            ))}
-          </ScrollView>
-        </View>
+        <AlertTriangle size={48} color="#E5344E" />
+        <Text className="text-white text-lg mt-4 text-center font-semibold">{error}</Text>
         <TouchableOpacity onPress={() => router.back()} className="mt-6 py-3 px-8 bg-white/10 rounded-xl">
-          <Text className="text-white font-inter font-semibold">Go Back</Text>
+          <Text className="text-white font-semibold">Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -193,75 +167,51 @@ export default function PlayerScreen() {
     <View className="flex-1 bg-black">
       <StatusBar hidden={isLandscape} />
 
-      {isLandscape && streamUrl && (
-        <View className="absolute top-0 left-0 right-0 z-10">
-          <TouchableOpacity onPress={() => router.back()} className="pt-[52px] pb-3 px-4">
-            <View className="w-10 h-10 rounded-full bg-white/20 justify-center items-center">
-              <ArrowLeft size={22} color="white" />
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {loading && !streamUrl && (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color={colors.accent} />
-          <Text className="text-white/60 font-inter font-medium text-sm mt-3 mb-4">
-            {iframeUrl ? 'Connecting to stream...' : 'Extracting stream source...'}
-          </Text>
-          <View className="w-full max-h-[60%] px-6">
-            <ScrollView>
-              {logs.map((log, i) => (
-                <Text key={i} className="text-[10px] font-mono text-green-400 leading-4">{log}</Text>
-              ))}
-            </ScrollView>
+      <WebView
+        source={{ uri: url }}
+        style={{ flex: 1, backgroundColor: '#000' }}
+        scrollEnabled={false}
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        onShouldStartLoadWithRequest={(request) => {
+          if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
+            return false;
+          }
+          if (!didLoadRef.current) {
+            return true;
+          }
+          if (request.url.includes('embed.st') || request.url.includes('embedhd')) {
+            return true;
+          }
+          return false;
+        }}
+        injectedJavaScript={INJECTED_JS}
+        onLoadEnd={handleLoadEnd}
+        onError={handleError}
+        renderLoading={() => (
+          <View className="absolute inset-0 justify-center items-center bg-black">
+            <ActivityIndicator size="large" color="#CFFF3D" />
           </View>
-        </View>
-      )}
+        )}
+        startInLoadingState
+        allowsInlineMediaPlayback
+        mediaPlaybackRequiresUserAction={false}
+        setSupportMultipleWindows={false}
+        javaScriptEnabled
+        domStorageEnabled
+        userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+      />
 
-      {streamUrl && (
-        <VideoView
-          style={{ width: '100%', height: isLandscape ? height : width * (9 / 16) }}
-          player={player}
-          nativeControls
-          contentFit="contain"
-        />
-      )}
-
-      {!isLandscape && streamUrl && (
-        <View className="flex-row items-center justify-between px-5 py-4 bg-black">
-          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-white/10 justify-center items-center">
-            <ArrowLeft size={22} color="white" />
-          </TouchableOpacity>
-          <Text className="text-white font-inter font-semibold text-base flex-1 text-center mx-3" numberOfLines={1}>
-            {title || 'Now Playing'}
-          </Text>
-          <TouchableOpacity onPress={() => ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)} className="w-10 h-10 rounded-full bg-white/10 justify-center items-center">
-            <Maximize size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {!streamUrl && (
-        <View style={{ position: 'absolute', width: 1, height: 1, opacity: 0.01, overflow: 'hidden' }}>
-          <WebView
-            key={iframeUrl || 'parent'}
-            source={webviewSource}
-            injectedJavaScriptBeforeContentLoaded={INJECTED_JS_BEFORE}
-            injectedJavaScript={INJECTED_JS_AFTER}
-            onMessage={handleMessage}
-            onError={handleWebViewError}
-            onLoadStart={() => addLog('[WV] loadStart: ' + (iframeUrl ? 'iframe page' : 'parent page'))}
-            onLoadEnd={() => addLog('[WV] loadEnd')}
-            javaScriptEnabled
-            domStorageEnabled
-            mediaPlaybackRequiresUserAction={false}
-            allowsInlineMediaPlayback
-            userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
-            style={{ width: 300, height: 200 }}
-          />
-        </View>
-      )}
+      <View className="absolute top-0 left-0 right-0" style={{ paddingTop: isLandscape ? 16 : 60 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 rounded-full bg-black/40 justify-center items-center ml-4"
+          activeOpacity={0.7}
+        >
+          <ArrowLeft size={22} color="white" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
