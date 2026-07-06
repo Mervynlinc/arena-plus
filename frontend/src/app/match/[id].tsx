@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@/constants/theme';
 import StreamRow from '@/components/StreamRow';
 import { fetchStreams, posterUrl, badgeUrl, Stream, Match } from '@/lib/api';
+import ScreenContainer from '@/components/ScreenContainer';
 
 export default function MatchDetailScreen() {
   const { match: matchJson } = useLocalSearchParams<{ id: string; match?: string }>();
@@ -37,7 +38,7 @@ export default function MatchDetailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <View className="relative">
         {imageUri && (
           <>
@@ -162,6 +163,6 @@ export default function MatchDetailScreen() {
           </ScrollView>
         )}
       </View>
-    </View>
+    </ScreenContainer>
   );
 }

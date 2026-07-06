@@ -1,4 +1,5 @@
 import { View, Text, ScrollView } from 'react-native';
+import ScreenContainer from '@/components/ScreenContainer';
 
 interface SettingRowProps {
   label: string;
@@ -41,7 +42,7 @@ function SettingRow({ label, value, hasToggle, toggleOn }: SettingRowProps) {
 
 export default function SettingsScreen() {
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <View className="absolute top-0 left-0 right-0 h-14 bg-bgCard justify-center">
         <View className="flex-row items-center px-4">
           <Text className="font-inter font-normal text-[22px] text-text mr-[10px]">
@@ -104,6 +105,6 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

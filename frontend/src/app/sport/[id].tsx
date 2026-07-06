@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import { fetchMatchesBySport, fetchPopularMatchesBySport, fetchLiveMatches, badgeUrl, Match } from '@/lib/api';
 import MatchCardPoster, { formatDate } from '@/components/MatchCardPoster';
+import ScreenContainer from '@/components/ScreenContainer';
 
 function LiveBadge() {
   return (
@@ -97,7 +98,7 @@ export default function SportMatchesScreen() {
   const title = id ? id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' ') : '';
 
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <View className="pt-[60px] px-6 pb-4">
         <View className="flex-row items-center gap-4">
           <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-bgCard2 justify-center items-center">
@@ -167,6 +168,6 @@ export default function SportMatchesScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

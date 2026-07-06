@@ -98,6 +98,27 @@ export interface Stream {
 
 const STREAM_SOURCES = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'intel'];
 
+export interface AllMatchesResult {
+  sportId: string;
+  sportName: string;
+  matches: Match[];
+}
+
+export async function fetchAllMatches(): Promise<AllMatchesResult[]> {
+  const sports = await fetchSports();
+  const results = await Promise.all(
+    sports.map(async (s) => {
+      try {
+        const matches = await fetchMatchesBySport(s.id);
+        return { sportId: s.id, sportName: s.name, matches };
+      } catch {
+        return { sportId: s.id, sportName: s.name, matches: [] };
+      }
+    })
+  );
+  return results;
+}
+
 export async function fetchStreams(source: string, sourceId: string): Promise<Stream[]> {
   if (!API_BASE || !STREAM_SOURCES.includes(source)) return [];
   const res = await fetch(`${API_BASE}/stream/${source}/${sourceId}`);

@@ -1,28 +1,29 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import SportCategoryTile from '@/components/SportCategoryTile';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, fetchPopularMatchesBySport, Match, Sport } from '@/lib/api';
+import ScreenContainer from '@/components/ScreenContainer';
 
-const SPORT_COLORS: Record<string, string> = {
-  football: colors.accent,
-  basketball: '#E8772E',
-  tennis: '#4CAF50',
-  cricket: '#2196F3',
-  'motor-sports': '#9C27B0',
-  'american-football': '#8B4513',
-  hockey: '#006F6F',
-  baseball: '#C41E3A',
-  fight: '#E5344E',
-  rugby: '#005A34',
-  golf: '#FFD700',
-  billiards: '#2E8B57',
-  afl: '#8B0000',
-  darts: '#DAA520',
-  other: '#6B7280',
+const SPORT_IMAGES: Record<string, number> = {
+  football: require('@/assets/images/football.png'),
+  basketball: require('@/assets/images/basketball.png'),
+  tennis: require('@/assets/images/tennis.png'),
+  cricket: require('@/assets/images/cricket.png'),
+  'motor-sports': require('@/assets/images/motor-sports.png'),
+  'american-football': require('@/assets/images/american-football.png'),
+  hockey: require('@/assets/images/hockey.png'),
+  baseball: require('@/assets/images/baseball.png'),
+  fight: require('@/assets/images/fight.png'),
+  rugby: require('@/assets/images/rugby.png'),
+  golf: require('@/assets/images/golf.png'),
+  billiards: require('@/assets/images/billiards.png'),
+  afl: require('@/assets/images/rugby.png'),
+  darts: require('@/assets/images/darts.png'),
+  other: require('@/assets/images/other.png'),
 };
 
 export default function HomeScreen() {
@@ -74,7 +75,7 @@ export default function HomeScreen() {
   }, [sports]);
 
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="pt-[60px] pb-8">
           <View className="px-6 flex-row justify-between items-center mb-7">
@@ -87,14 +88,14 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-          <View className="px-6 mb-7">
+          <TouchableOpacity className="px-6 mb-7" onPress={() => router.push('/search')} activeOpacity={0.8}>
             <View className="flex-row items-center gap-[10px] py-[14px] px-4 bg-bgCard2 border border-stroke rounded-2xl h-14">
               <Search size={18} color={colors.textSecondary} />
               <Text className="font-inter font-normal text-[13px] text-textSecondary">
                 Search teams, leagues...
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
           <View className="mb-7 pl-6">
             <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
               Sports
@@ -108,7 +109,7 @@ export default function HomeScreen() {
                     <SportCategoryTile
                       key={sport.id}
                       label={sport.name}
-                      iconColor={SPORT_COLORS[sport.id] ?? colors.textSecondary}
+                      imageSource={SPORT_IMAGES[sport.id] ?? require('@/assets/images/other.png')}
                       onPress={() => router.push(`/sport/${sport.id}` as any)}
                     />
                   ))}
@@ -180,6 +181,6 @@ export default function HomeScreen() {
 
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

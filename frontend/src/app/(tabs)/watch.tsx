@@ -4,6 +4,7 @@ import { colors } from '@/constants/theme';
 import CategoryPill from '@/components/CategoryPill';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
+import ScreenContainer from '@/components/ScreenContainer';
 
 const FILTERS = ['Today', 'Popular'] as const;
 type Filter = typeof FILTERS[number];
@@ -66,7 +67,7 @@ export default function WatchScreen() {
   const hasMatches = (sportId: string) => filteredMatches(sportId).length > 0;
 
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View className="pt-[60px] pb-[100px]">
           <Text className="font-inter font-bold text-2xl text-text mb-6 px-6">
@@ -100,6 +101,6 @@ export default function WatchScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </ScreenContainer>
   );
 }

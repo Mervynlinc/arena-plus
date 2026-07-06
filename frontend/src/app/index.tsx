@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Image, Dimensions, NativeSyntheticEvent, Native
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Button from '@/components/Button';
+import ScreenContainer from '@/components/ScreenContainer';
 
 const { width, height } = Dimensions.get('window');
 const IMAGE_HEIGHT = height * 0.55;
@@ -46,7 +47,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg">
+    <ScreenContainer>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -97,6 +98,6 @@ export default function OnboardingScreen() {
           ))}
         </View>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }

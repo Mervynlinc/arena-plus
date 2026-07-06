@@ -1,13 +1,12 @@
-import { TouchableOpacity, Text, View } from 'react-native';
-import IconPlaceholder from './IconPlaceholder';
+import { TouchableOpacity, Text, Image } from 'react-native';
 
 interface Props {
   label: string;
-  iconColor?: string;
+  imageSource: number;
   onPress: () => void;
 }
 
-export default function SportCategoryTile({ label, iconColor, onPress }: Props) {
+export default function SportCategoryTile({ label, imageSource, onPress }: Props) {
   const words = label.split(' ');
   const displayLabel = words.slice(0, 2).join('\n') + (words.length > 2 ? '...' : '');
 
@@ -17,8 +16,8 @@ export default function SportCategoryTile({ label, iconColor, onPress }: Props) 
       activeOpacity={0.7}
       className="w-24 py-[14px] items-center gap-2 bg-bgCard2 border border-stroke rounded-[18px]"
     >
-      <IconPlaceholder size={22} color={iconColor ?? '#2A2A2F'} borderRadius={6} />
-      <Text className="font-inter font-semibold text-xs text-textMuted text-center">
+      <Image source={imageSource} className="w-[22px] h-[22px]" resizeMode="contain" />
+      <Text className="font-inter font-bold text-xs text-textMuted text-center">
         {displayLabel}
       </Text>
     </TouchableOpacity>
