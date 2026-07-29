@@ -125,9 +125,11 @@ export default function HomeScreen() {
                   Live Now
                 </Text>
               </View>
-              <Text className="font-inter font-semibold text-[13px] text-accent">
-                See all
-              </Text>
+              <TouchableOpacity onPress={() => router.push('/live' as any)} activeOpacity={0.7}>
+                <Text className="font-inter font-semibold text-[13px] text-accent">
+                  See all
+                </Text>
+              </TouchableOpacity>
             </View>
             {liveLoading ? (
               <ActivityIndicator color={colors.accent} />
