@@ -120,7 +120,7 @@ export default function HomeScreen() {
           <View className="pl-6 gap-[14px] mb-7">
             <View className="flex-row justify-between items-center pr-6">
               <View className="flex-row items-center gap-2">
-                <View className="w-2 h-2 rounded-full bg-text" />
+                <View className="w-2 h-2 rounded-full bg-red" />
                 <Text className="font-inter font-bold text-[17px] text-text">
                   Live Now
                 </Text>

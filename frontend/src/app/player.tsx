@@ -10,30 +10,34 @@ const LOADING_TIMEOUT = 30000;
 
 const INJECTED_JS = `
 (function() {
-  var origWarn = console.warn;
-  console.warn = function(msg) {
-    if (typeof msg === 'string' && msg.indexOf('sandbox') !== -1) {
-      return;
-    }
-    return origWarn.apply(console, arguments);
-  };
-
-  function removeSandboxFromIframes() {
-    var iframes = document.querySelectorAll('iframe');
-    iframes.forEach(function(iframe) {
-      if (iframe.hasAttribute('sandbox')) {
-        iframe.removeAttribute('sandbox');
+  function removeSandbox(iframe) {
+    if (iframe.dataset.sandboxFixed) return;
+    if (iframe.hasAttribute('sandbox')) {
+      iframe.dataset.sandboxFixed = '1';
+      iframe.removeAttribute('sandbox');
+      var src = iframe.src;
+      if (src) {
+        iframe.src = 'about:blank';
+        requestAnimationFrame(function() { iframe.src = src; });
       }
+    }
+  }
+
+  document.querySelectorAll('iframe[sandbox]').forEach(removeSandbox);
+
+  var sandboxObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (node.tagName === 'IFRAME') removeSandbox(node);
+        else if (node.querySelectorAll) node.querySelectorAll('iframe[sandbox]').forEach(removeSandbox);
+      });
     });
-  }
-  removeSandboxFromIframes();
-  var sandboxObserver = new MutationObserver(function() {
-    removeSandboxFromIframes();
   });
-  if (document.body) {
-    sandboxObserver.observe(document.body, { childList: true, subtree: true });
-  }
-  setTimeout(function() { sandboxObserver.disconnect(); }, 10000);
+  sandboxObserver.observe(document.documentElement, { childList: true, subtree: true });
+
+  setInterval(function() {
+    document.querySelectorAll('iframe[sandbox]').forEach(removeSandbox);
+  }, 3000);
 
   window.open = function() { return null; };
 
@@ -81,9 +85,8 @@ const INJECTED_JS = `
     el.style.display = 'none';
   });
 
-  var iframes = document.querySelectorAll('iframe');
-  iframes.forEach(function(iframe) {
-    iframe.removeAttribute('sandbox');
+  var allIframes = document.querySelectorAll('iframe');
+  allIframes.forEach(function(iframe) {
     iframe.style.width = '100vw';
     iframe.style.height = '100vh';
     iframe.style.border = 'none';
@@ -95,9 +98,9 @@ const INJECTED_JS = `
 
   setTimeout(function() {
     try {
-      var allIframes = document.querySelectorAll('iframe');
-      for (var i = 0; i < allIframes.length; i++) {
-        var src = allIframes[i].src || allIframes[i].getAttribute('src') || '';
+      var checkIframes = document.querySelectorAll('iframe');
+      for (var i = 0; i < checkIframes.length; i++) {
+        var src = checkIframes[i].src || checkIframes[i].getAttribute('src') || '';
         if (src.indexOf('embedhd') !== -1 && window.location.href.indexOf('embedhd') === -1) {
           window.location.href = src;
           return;
@@ -115,7 +118,6 @@ export default function PlayerScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const didLoadRef = useRef(false);
 
   const isLandscape = width > height;
 
@@ -139,7 +141,6 @@ export default function PlayerScreen() {
   }, [loading]);
 
   const handleLoadEnd = useCallback(() => {
-    didLoadRef.current = true;
     setLoading(false);
     if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
   }, []);
@@ -178,13 +179,7 @@ export default function PlayerScreen() {
           if (!request.url.startsWith('http://') && !request.url.startsWith('https://')) {
             return false;
           }
-          if (!didLoadRef.current) {
-            return true;
-          }
-          if (request.url.includes('embed.st') || request.url.includes('embedhd')) {
-            return true;
-          }
-          return false;
+          return true;
         }}
         injectedJavaScript={INJECTED_JS}
         onLoadEnd={handleLoadEnd}
@@ -197,10 +192,12 @@ export default function PlayerScreen() {
         startInLoadingState
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
-        setSupportMultipleWindows={false}
+        setSupportMultipleWindows={true}
+        onOpenWindow={() => {}}
         javaScriptEnabled
         domStorageEnabled
-        userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        mixedContentMode="always"
+        userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
       />
 
       <View className="absolute top-0 left-0 right-0" style={{ paddingTop: isLandscape ? 16 : 60 }}>
