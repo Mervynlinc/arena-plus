@@ -1,10 +1,10 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { posterUrl, Match } from '@/lib/api';
+import { posterUrl, badgeUrl, Match } from '@/lib/api';
 
-export const CARD_WIDTH = 160;
-export const CARD_HEIGHT = 224;
+export const CARD_WIDTH = 200;
+export const CARD_HEIGHT = 130;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -45,21 +45,35 @@ export default function MatchCardPoster({ match, badge }: Props) {
           style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
           resizeMode="cover"
         />
-      ) : (
-        <View className="flex-1 bg-bgCard2 justify-center items-center">
-          <Text className="font-inter font-semibold text-xs text-textMuted">No poster</Text>
+      ) : match.teams ? (
+        <View className="absolute inset-0 bg-bgCard2 items-center pt-5">
+          <View className="flex-row items-center gap-4">
+            {badgeUrl(match.teams.home?.badge) ? (
+              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
+            ) : (
+              <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
+            )}
+            <Text className="font-inter font-extrabold text-xl text-textMuted">VS</Text>
+            {badgeUrl(match.teams.away?.badge) ? (
+              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
+            ) : (
+              <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
+            )}
+          </View>
         </View>
+      ) : (
+        <View className="absolute inset-0 bg-bgCard2" />
       )}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.85)']}
-        locations={[0.25, 1]}
+        locations={[0.4, 1]}
         className="absolute inset-0"
         style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
       />
       {badge && (
         <View className="absolute top-3 left-3">{badge}</View>
       )}
-      <View className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8">
+      <View className="absolute bottom-0 left-0 right-0 px-3 pb-2 pt-6">
         <Text className="font-inter font-bold text-sm text-text leading-[18px]" numberOfLines={2}>
           {match.title}
         </Text>
