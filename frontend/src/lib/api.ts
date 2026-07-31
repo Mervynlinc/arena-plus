@@ -96,7 +96,7 @@ export interface Stream {
   viewers?: number;
 }
 
-const STREAM_SOURCES = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'intel'];
+const STREAM_SOURCES = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'intel', 'admin'];
 
 export interface AllMatchesResult {
   sportId: string;
