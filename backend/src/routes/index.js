@@ -3,9 +3,11 @@ import sportsRoutes from './sports.js';
 import streamSourceRoutes from './streamSource.js';
 import imagesRoutes from './images.js';
 import matchesRoutes from './matches.js';
+import healthRoutes from './health.js';
 
 export const router = Router();
 
+router.use('/health', healthRoutes);
 router.use('/sports', sportsRoutes);
 router.use('/stream', streamSourceRoutes);
 router.use('/images', imagesRoutes);

@@ -4,7 +4,7 @@ const STREAMED_API = process.env.STREAMED_API || 'https://streamed.pk';
 
 const validSources = [
   'alpha', 'bravo', 'charlie', 'delta', 'echo',
-  'foxtrot', 'golf', 'hotel', 'intel',
+  'foxtrot', 'golf', 'hotel', 'intel', 'admin',
 ];
 
 export async function getStreamBySource(req, res) {
