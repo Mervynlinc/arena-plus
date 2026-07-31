@@ -7,24 +7,7 @@ import SportCategoryTile from '@/components/SportCategoryTile';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, fetchPopularMatchesBySport, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
-
-const SPORT_IMAGES: Record<string, number> = {
-  football: require('@/assets/images/football.png'),
-  basketball: require('@/assets/images/basketball.png'),
-  tennis: require('@/assets/images/tennis.png'),
-  cricket: require('@/assets/images/cricket.png'),
-  'motor-sports': require('@/assets/images/motor-sports.png'),
-  'american-football': require('@/assets/images/american-football.png'),
-  hockey: require('@/assets/images/hockey.png'),
-  baseball: require('@/assets/images/baseball.png'),
-  fight: require('@/assets/images/fight.png'),
-  rugby: require('@/assets/images/rugby.png'),
-  golf: require('@/assets/images/golf.png'),
-  billiards: require('@/assets/images/billiards.png'),
-  afl: require('@/assets/images/rugby.png'),
-  darts: require('@/assets/images/darts.png'),
-  other: require('@/assets/images/other.png'),
-};
+import { sportEmoji } from '@/lib/sports';
 
 export default function HomeScreen() {
   const [sports, setSports] = useState<Sport[]>([]);
@@ -109,7 +92,7 @@ export default function HomeScreen() {
                     <SportCategoryTile
                       key={sport.id}
                       label={sport.name}
-                      imageSource={SPORT_IMAGES[sport.id] ?? require('@/assets/images/other.png')}
+                      emoji={sportEmoji(sport.id)}
                       onPress={() => router.push(`/sport/${sport.id}` as any)}
                     />
                   ))}
