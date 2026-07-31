@@ -1,12 +1,12 @@
-import { TouchableOpacity, Text, Image } from 'react-native';
+import { TouchableOpacity, Text } from 'react-native';
 
 interface Props {
   label: string;
-  imageSource: number;
+  emoji: string;
   onPress: () => void;
 }
 
-export default function SportCategoryTile({ label, imageSource, onPress }: Props) {
+export default function SportCategoryTile({ label, emoji, onPress }: Props) {
   const words = label.split(' ');
   const displayLabel = words.slice(0, 2).join('\n') + (words.length > 2 ? '...' : '');
 
@@ -16,7 +16,7 @@ export default function SportCategoryTile({ label, imageSource, onPress }: Props
       activeOpacity={0.7}
       className="w-24 py-[14px] items-center gap-2 bg-bgCard2 border border-stroke rounded-[18px]"
     >
-      <Image source={imageSource} className="w-[22px] h-[22px]" resizeMode="contain" />
+      <Text className="text-[24px] leading-[24px]">{emoji}</Text>
       <Text className="font-inter font-bold text-xs text-textMuted text-center">
         {displayLabel}
       </Text>

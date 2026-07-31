@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { posterUrl, badgeUrl, Match } from '@/lib/api';
+import { sportEmoji } from '@/lib/sports';
 
 export const CARD_WIDTH = 200;
 export const CARD_HEIGHT = 130;
@@ -31,6 +32,12 @@ interface Props {
 export default function MatchCardPoster({ match, badge }: Props) {
   const uri = posterUrl(match.poster);
   const { time, date: dateLabel } = formatDate(match.date);
+  const hasTeams = Boolean(
+    match.teams?.home?.name ||
+      match.teams?.home?.badge ||
+      match.teams?.away?.name ||
+      match.teams?.away?.badge
+  );
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -45,7 +52,7 @@ export default function MatchCardPoster({ match, badge }: Props) {
           style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
           resizeMode="cover"
         />
-      ) : match.teams ? (
+      ) : hasTeams ? (
         <View className="absolute inset-0 bg-bgCard2 items-center pt-5">
           <View className="flex-row items-center gap-4">
             {badgeUrl(match.teams.home?.badge) ? (
@@ -62,7 +69,9 @@ export default function MatchCardPoster({ match, badge }: Props) {
           </View>
         </View>
       ) : (
-        <View className="absolute inset-0 bg-bgCard2" />
+        <View className="absolute inset-0 bg-bgCard2 items-center justify-center">
+          <Text className="text-5xl">{sportEmoji(match.category)}</Text>
+        </View>
       )}
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.85)']}

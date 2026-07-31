@@ -72,7 +72,7 @@ export default function SearchScreen() {
           <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-bgCard2 justify-center items-center">
             <ArrowLeft size={20} color={colors.textSecondary} />
           </TouchableOpacity>
-          <View className="flex-1 flex-row items-center gap-2 py-3 px-4 bg-bgCard2 border border-stroke rounded-2xl h-14">
+          <View className="flex-1 flex-row items-center gap-2 px-4 bg-bgCard2 border border-stroke rounded-2xl h-14">
             <Search size={18} color={colors.textSecondary} />
             <TextInput
               ref={inputRef}
@@ -80,7 +80,7 @@ export default function SearchScreen() {
               onChangeText={setQuery}
               placeholder="Search teams, leagues..."
               placeholderTextColor={colors.textSecondary}
-              className="flex-1 font-inter font-normal text-[13px] text-text"
+              className="flex-1 h-full py-0 font-inter font-normal text-[13px] text-text"
               autoCorrect={false}
               autoCapitalize="none"
               returnKeyType="search"
