@@ -12,8 +12,21 @@ jobs:
     steps:
       - name: Ping Render /api/health endpoint
         run: |
-          # Set RENDER_APP_URL as a repo Actions variable, e.g. your-app.onrender.com
-          response=$(curl -s -o /dev/null -w "%{http_code}" "https://${{ vars.RENDER_APP_URL }}/api/health")
+          # Set RENDER_APP_URL as a repo Actions variable or secret, e.g. your-app.onrender.com
+          app_url="${{ vars.RENDER_APP_URL }}"
+          if [ -z "$app_url" ]; then
+            app_url="${{ secrets.RENDER_APP_URL }}"
+          fi
+          if [ -z "$app_url" ]; then
+            echo "RENDER_APP_URL is not configured (repo variable/secret). Skipping ping."
+            exit 0
+          fi
+
+          # Normalize value in case protocol is included
+          app_url="${app_url#https://}"
+          app_url="${app_url#http://}"
+
+          response=$(curl -s -o /dev/null -w "%{http_code}" "https://${app_url}/api/health")
           echo "Health check status: $response"
           # A 200 OK response means the server is awake and healthy
           if [ "$response" != "200" ]; then
