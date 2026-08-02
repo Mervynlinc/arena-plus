@@ -13,14 +13,14 @@ export default function StreamRow({ serverName, quality, language, tag, onPress 
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      className="p-[14px] pl-4 flex-row justify-between items-center bg-bgCard2 rounded-2xl w-[342px]"
+      className="p-[14px] pl-4 flex-row justify-between items-center bg-bgCard2 rounded-2xl w-full"
     >
-      <View className="flex-row items-center gap-3">
+      <View className="flex-1 min-w-0 flex-row items-center gap-3">
         <View className="w-10 h-10 rounded-xl justify-center items-center" style={{ backgroundColor: '#242429' }}>
           <Text className="text-lg text-accent">▶</Text>
         </View>
-        <View className="gap-[5px]">
-          <Text className="font-inter font-semibold text-sm text-text">
+        <View className="flex-1 min-w-0 gap-[5px]">
+          <Text className="font-inter font-semibold text-sm text-text" numberOfLines={1} ellipsizeMode="tail">
             {serverName}
           </Text>
           <View className="flex-row items-center gap-[6px]">
@@ -29,7 +29,7 @@ export default function StreamRow({ serverName, quality, language, tag, onPress 
                 {quality}
               </Text>
             </View>
-            <Text className="font-inter font-medium text-[11px] text-textSecondary">
+            <Text className="flex-1 font-inter font-medium text-[11px] text-textSecondary" numberOfLines={1} ellipsizeMode="tail">
               {language} · {tag}
             </Text>
           </View>

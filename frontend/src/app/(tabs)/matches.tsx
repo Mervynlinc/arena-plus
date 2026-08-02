@@ -19,6 +19,15 @@ function isToday(timestamp: number): boolean {
   );
 }
 
+function dedupeMatches(matches: Match[]): Match[] {
+  const seen = new Set<string>();
+  return matches.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
+}
+
 export default function MatchesScreen() {
   const [sports, setSports] = useState<Sport[]>([]);
   const [matchesBySport, setMatchesBySport] = useState<Record<string, Match[]>>({});
@@ -51,7 +60,7 @@ export default function MatchesScreen() {
       })
       .then((results) => {
         const map: Record<string, Match[]> = {};
-        results.forEach((r) => { map[r.sportId] = r.matches; });
+        results.forEach((r) => { map[r.sportId] = dedupeMatches(r.matches); });
         setMatchesBySport(map);
       })
       .catch(console.error)
