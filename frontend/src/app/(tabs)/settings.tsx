@@ -98,7 +98,7 @@ export default function SettingsScreen() {
               ABOUT
             </Text>
             <View className="bg-bgCard rounded-[20px] overflow-hidden w-[358px]">
-              <SettingRow label="Version" value="1.0.0" />
+              <SettingRow label="Version" value="2.0.0" />
               <SettingRow label="Terms of Service" value="" />
               <SettingRow label="Privacy Policy" value="" />
             </View>

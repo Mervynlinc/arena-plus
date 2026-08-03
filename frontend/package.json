@@ -1,7 +1,7 @@
 {
   "name": "streamed",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "dependencies": {
     "@expo/ui": "~57.0.7",
     "@kauza/react-native-geckoview": "^2.0.0",
@@ -44,7 +44,7 @@
     "eslint-config-expo": "~57.0.0",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4.3.2",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { colors } from '@/constants/theme';
+import { View, Text, ScrollView } from 'react-native';
 import CategoryPill from '@/components/CategoryPill';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchMatchesBySport, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
+import SectionSkeleton from '@/components/skeletons/SectionSkeleton';
+import MatchCardSkeleton from '@/components/skeletons/MatchCardSkeleton';
+import Reveal from '@/components/Reveal';
 
 const FILTERS = ['Today', 'Live', 'Popular'] as const;
 type Filter = typeof FILTERS[number];
@@ -50,18 +52,15 @@ export default function MatchesScreen() {
     fetchSports()
       .then((sportList) => {
         setSports(sportList);
-        return Promise.all(
-          sportList.map((s) =>
-            fetchMatchesBySport(s.id)
-              .then((ms) => ({ sportId: s.id, matches: ms }))
-              .catch(() => ({ sportId: s.id, matches: [] as Match[] }))
-          )
-        );
-      })
-      .then((results) => {
-        const map: Record<string, Match[]> = {};
-        results.forEach((r) => { map[r.sportId] = dedupeMatches(r.matches); });
-        setMatchesBySport(map);
+        sportList.forEach((s) => {
+          fetchMatchesBySport(s.id)
+            .then((ms) =>
+              setMatchesBySport((prev) => ({ ...prev, [s.id]: dedupeMatches(ms) }))
+            )
+            .catch(() =>
+              setMatchesBySport((prev) => ({ ...prev, [s.id]: [] as Match[] }))
+            );
+        });
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -94,30 +93,43 @@ export default function MatchesScreen() {
             ))}
           </View>
           {loading ? (
-            <View className="items-center pt-10">
-              <ActivityIndicator color={colors.accent} size="large" />
+            <View className="gap-0">
+              <SectionSkeleton count={2} />
+              <SectionSkeleton count={2} />
+              <SectionSkeleton count={2} />
             </View>
           ) : (
-            sports.filter((s) => hasMatches(s.id)).map((sport) => (
-              <View key={sport.id} className="mb-6 pl-6">
-                <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
-                  {sport.name}
-                </Text>
-                {filteredMatches(sport.id).length > 0 ? (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <View className="flex-row gap-3 pr-6">
-                      {filteredMatches(sport.id).map((match) => (
-                        <MatchCardPoster key={match.id} match={match} />
-                      ))}
-                    </View>
-                  </ScrollView>
-                ) : (
-                  <Text className="font-inter text-sm text-textSecondary">
-                    No matches available
+            sports
+              .filter((s) => matchesBySport[s.id] === undefined || hasMatches(s.id))
+              .map((sport) => (
+                <View key={sport.id} className="mb-6 pl-6">
+                  <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
+                    {sport.name}
                   </Text>
-                )}
-              </View>
-            ))
+                  {matchesBySport[sport.id] === undefined ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View className="flex-row gap-3 pr-6">
+                        <MatchCardSkeleton />
+                        <MatchCardSkeleton />
+                      </View>
+                    </ScrollView>
+                  ) : filteredMatches(sport.id).length > 0 ? (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                      <View className="flex-row gap-3 pr-6">
+                        {filteredMatches(sport.id).map((match, i) => (
+                          <Reveal key={match.id} delay={i * 40}>
+                            <MatchCardPoster match={match} />
+                          </Reveal>
+                        ))}
+                      </View>
+                    </ScrollView>
+                  ) : (
+                    <Text className="font-inter text-sm text-textSecondary">
+                      No matches available
+                    </Text>
+                  )}
+                </View>
+              ))
           )}
         </View>
       </ScrollView>

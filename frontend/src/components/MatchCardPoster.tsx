@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { posterUrl, badgeUrl, Match } from '@/lib/api';
@@ -50,19 +51,20 @@ export default function MatchCardPoster({ match, badge }: Props) {
           source={{ uri }}
           className="absolute inset-0"
           style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={250}
         />
       ) : hasTeams ? (
         <View className="absolute inset-0 bg-bgCard2 items-center pt-5">
           <View className="flex-row items-center gap-4">
             {badgeUrl(match.teams.home?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
+              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-14 h-14 rounded-full" contentFit="contain" transition={250} />
             ) : (
               <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
             )}
             <Text className="font-inter font-extrabold text-xl text-textMuted">VS</Text>
             {badgeUrl(match.teams.away?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
+              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-14 h-14 rounded-full" contentFit="contain" transition={250} />
             ) : (
               <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
             )}

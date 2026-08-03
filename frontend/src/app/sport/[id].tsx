@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import { fetchMatchesBySport, fetchPopularMatchesBySport, fetchLiveMatches, badgeUrl, Match } from '@/lib/api';
 import MatchCardPoster, { formatDate } from '@/components/MatchCardPoster';
 import ScreenContainer from '@/components/ScreenContainer';
+import MatchCardSkeleton from '@/components/skeletons/MatchCardSkeleton';
+import MatchRowSkeleton from '@/components/skeletons/MatchRowSkeleton';
+import Reveal from '@/components/Reveal';
 
 function LiveBadge() {
   return (
@@ -34,7 +38,7 @@ function MatchCard({ match }: { match: Match }) {
         <View className="gap-[6px]">
           <View className="flex-row items-center gap-2">
             {badgeUrl(match.teams.home?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
+              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
             ) : (
               <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
             )}
@@ -42,7 +46,7 @@ function MatchCard({ match }: { match: Match }) {
           </View>
           <View className="flex-row items-center gap-2">
             {badgeUrl(match.teams.away?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
+              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
             ) : (
               <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
             )}
@@ -108,52 +112,75 @@ export default function SportMatchesScreen() {
         </View>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {!liveLoading && (
-          <View className="mb-6 pl-6">
-            <View className="flex-row items-center gap-2 mb-3">
-              <View className="w-2 h-2 rounded-full bg-liveRed" />
-              <Text className="font-inter font-bold text-[17px] text-text">
-                Live Now
+        <View className="mb-6 pl-6">
+          <View className="flex-row items-center gap-2 mb-3">
+            <View className="w-2 h-2 rounded-full bg-liveRed" />
+            <Text className="font-inter font-bold text-[17px] text-text">
+              Live Now
+            </Text>
+          </View>
+          {liveLoading ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-3 pr-6">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <MatchCardSkeleton key={i} />
+                ))}
+              </View>
+            </ScrollView>
+          ) : liveMatches.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row gap-3 pr-6">
+                {liveMatches.map((match, i) => (
+                  <Reveal key={match.id} delay={i * 40}>
+                    <MatchCardPoster match={match} badge={<LiveBadge />} />
+                  </Reveal>
+                ))}
+              </View>
+            </ScrollView>
+          ) : (
+            <View className="pr-6">
+              <Text className="font-inter font-normal text-sm text-textSecondary">
+                No live matches currently
               </Text>
             </View>
-            {liveMatches.length > 0 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-3 pr-6">
-                  {liveMatches.map((match) => (
-                    <MatchCardPoster key={match.id} match={match} badge={<LiveBadge />} />
-                  ))}
-                </View>
-              </ScrollView>
-            ) : (
-              <View className="pr-6">
-                <Text className="font-inter font-normal text-sm text-textSecondary">
-                  No live matches currently
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
-        {!popularLoading && popular.length > 0 && (
+          )}
+        </View>
+        {popularLoading || popular.length > 0 ? (
           <View className="mb-6 pl-6">
             <Text className="font-inter font-bold text-[17px] text-text mb-3">
               Popular
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row gap-3 pr-6">
-                {popular.map((match) => (
-                  <MatchCardPoster key={match.id} match={match} />
-                ))}
-              </View>
-            </ScrollView>
+            {popularLoading ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <MatchCardSkeleton key={i} />
+                  ))}
+                </View>
+              </ScrollView>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {popular.map((match, i) => (
+                    <Reveal key={match.id} delay={i * 40}>
+                      <MatchCardPoster match={match} />
+                    </Reveal>
+                  ))}
+                </View>
+              </ScrollView>
+            )}
           </View>
-        )}
+        ) : null}
         <View className="px-6">
           <Text className="font-inter font-bold text-[17px] text-text mb-3">
             All Matches
           </Text>
           {loading ? (
-            <View className="items-center pt-10">
-              <ActivityIndicator color={colors.accent} size="large" />
+            <View className="gap-3">
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
             </View>
           ) : error ? (
             <Text className="font-inter text-sm text-red-500">{error}</Text>
@@ -161,8 +188,10 @@ export default function SportMatchesScreen() {
             <Text className="font-inter text-sm text-textSecondary">No matches found</Text>
           ) : (
             <View className="gap-3 pb-20">
-              {matches.map((match) => (
-                <MatchCard key={match.id} match={match} />
+              {matches.map((match, i) => (
+                <Reveal key={match.id} delay={i * 30}>
+                  <MatchCard match={match} />
+                </Reveal>
               ))}
             </View>
           )}
