@@ -7,6 +7,15 @@ import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
 
+function dedupeMatches(matches: Match[]): Match[] {
+  const seen = new Set<string>();
+  return matches.filter((m) => {
+    if (seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
+}
+
 export default function LiveScreen() {
   const [sports, setSports] = useState<Sport[]>([]);
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
@@ -16,7 +25,7 @@ export default function LiveScreen() {
     Promise.all([fetchSports(), fetchLiveMatches()])
       .then(([sportList, liveList]) => {
         setSports(sportList);
-        setLiveMatches(liveList);
+        setLiveMatches(dedupeMatches(liveList));
       })
       .catch(console.error)
       .finally(() => setLoading(false));

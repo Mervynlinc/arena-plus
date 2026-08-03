@@ -23,10 +23,15 @@ const INJECT_JS = `
 
 const STOP_JS = `
 (function(){
-  document.querySelectorAll('video,audio').forEach(function(el){
-    el.pause();el.removeAttribute('src');el.load();
-  });
-  window.stop();
+  try {
+    document.querySelectorAll('video,audio').forEach(function(el){
+      try { el.pause(); } catch(e){}
+      el.removeAttribute('src');
+      el.load();
+    });
+  } catch(e){}
+  try { window.stop(); } catch(e){}
+  try { window.location.href = 'about:blank'; } catch(e){}
 })();
 `;
 
@@ -37,16 +42,19 @@ export default function PlayerScreen() {
   const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const geckoRef = useRef<any>(null);
   const navigation = useNavigation();
-  const stoppedRef = useRef(false);
+  const removingRef = useRef(false);
 
   const streamUrl = url || '';
 
   const stopMedia = useCallback(() => {
-    if (stoppedRef.current) return;
-    stoppedRef.current = true;
     try {
       geckoRef.current?.stopLoading();
+    } catch {}
+    try {
       geckoRef.current?.injectJavaScript(STOP_JS);
+    } catch {}
+    try {
+      geckoRef.current?.loadUrl('about:blank');
     } catch {}
   }, []);
 
@@ -59,7 +67,15 @@ export default function PlayerScreen() {
   }, [stopMedia]);
 
   useEffect(() => {
-    const unsub = navigation.addListener('beforeRemove', stopMedia);
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (!geckoRef.current || removingRef.current) return;
+      removingRef.current = true;
+      e.preventDefault();
+      stopMedia();
+      setTimeout(() => {
+        navigation.dispatch(e.data.action);
+      }, 150);
+    });
     return unsub;
   }, [navigation, stopMedia]);
 
@@ -87,9 +103,8 @@ export default function PlayerScreen() {
   }, []);
 
   const handleBack = useCallback(() => {
-    stopMedia();
     router.back();
-  }, [stopMedia]);
+  }, []);
 
   if (error || !streamUrl) {
     return (

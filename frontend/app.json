@@ -28,6 +28,16 @@
     "plugins": [
       "expo-router",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://maven.mozilla.org/maven2/"
+            ]
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",
@@ -35,16 +45,8 @@
           "imageWidth": 76
         }
       ],
-      [
-        "expo-video",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
-        }
-      ],
       "expo-image",
-      "expo-status-bar",
-      "expo-web-browser"
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,
