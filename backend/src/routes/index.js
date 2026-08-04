@@ -3,7 +3,11 @@ import sportsRoutes from './sports.js';
 import streamSourceRoutes from './streamSource.js';
 import imagesRoutes from './images.js';
 import matchesRoutes from './matches.js';
+<<<<<<< Updated upstream
 import healthRoutes from './health.js';
+=======
+import usersRoutes from './users.js';
+>>>>>>> Stashed changes
 
 export const router = Router();
 
@@ -12,3 +16,4 @@ router.use('/sports', sportsRoutes);
 router.use('/stream', streamSourceRoutes);
 router.use('/images', imagesRoutes);
 router.use('/matches', matchesRoutes);
+router.use('/users', usersRoutes);

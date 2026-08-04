@@ -1,0 +1,5 @@
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS username TEXT,
+  DROP COLUMN IF EXISTS first_name,
+  DROP COLUMN IF EXISTS last_name,
+  DROP COLUMN IF EXISTS image_url;
