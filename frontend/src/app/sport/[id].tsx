@@ -35,22 +35,27 @@ function MatchCard({ match }: { match: Match }) {
         <Text className="font-inter font-medium text-[10px] text-textSecondary">{dateLabel}</Text>
       </View>
       {match.teams ? (
-        <View className="gap-[6px]">
-          <View className="flex-row items-center gap-2">
+        <View className="flex-1 flex-row items-center gap-3 px-3">
+          <View className="items-center gap-1 flex-1">
             {badgeUrl(match.teams.home?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
+              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-8 h-8 rounded-full" contentFit="contain" transition={250} />
             ) : (
-              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+              <View className="w-8 h-8 rounded-full bg-bgCard border border-stroke" />
             )}
-            <Text className="font-inter font-semibold text-[13px] text-text">{match.teams.home?.name}</Text>
+            <Text className="font-inter font-semibold text-[11px] text-text text-center" numberOfLines={1}>
+              {match.teams.home?.name}
+            </Text>
           </View>
-          <View className="flex-row items-center gap-2">
+          <Text className="font-inter font-extrabold text-xs text-textMuted">VS</Text>
+          <View className="items-center gap-1 flex-1">
             {badgeUrl(match.teams.away?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
+              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-8 h-8 rounded-full" contentFit="contain" transition={250} />
             ) : (
-              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+              <View className="w-8 h-8 rounded-full bg-bgCard border border-stroke" />
             )}
-            <Text className="font-inter font-semibold text-[13px] text-text">{match.teams.away?.name}</Text>
+            <Text className="font-inter font-semibold text-[11px] text-text text-center" numberOfLines={1}>
+              {match.teams.away?.name}
+            </Text>
           </View>
         </View>
       ) : (

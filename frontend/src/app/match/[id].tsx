@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,25 +41,37 @@ export default function MatchDetailScreen() {
 
   return (
     <ScreenContainer>
-      <View className="relative">
+      <View className="relative" style={{ height: 340 }}>
         {imageUri && (
           <>
             <Image
               source={{ uri: imageUri }}
-              className="absolute inset-0"
-              style={{ width: '100%', height: 340 }}
-              contentFit="cover"
-              transition={250}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: 340,
+              }}
+              resizeMode="cover"
             />
             <LinearGradient
               colors={['rgba(10,10,12,0.35)', 'rgba(10,10,12,0.97)']}
               locations={[0.15, 1]}
-              className="absolute inset-0"
-              style={{ height: 340 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 340,
+              }}
             />
           </>
         )}
-        <View className="pt-[60px] px-6 pb-5" style={imageUri ? undefined : {}}>
+        <View className="pt-[60px] px-6 pb-5">
           <View className="flex-row items-center gap-4 mb-6">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -80,7 +91,7 @@ export default function MatchDetailScreen() {
               <View className="flex-row items-center gap-6">
                 <View className="items-center gap-3">
                   {badgeUrl(match.teams.home?.badge) ? (
-                    <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-20 h-20 rounded-full" contentFit="contain" transition={250} />
+                    <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-20 h-20 rounded-full" resizeMode="contain" />
                   ) : (
                     <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
                   )}
@@ -100,7 +111,7 @@ export default function MatchDetailScreen() {
                 </View>
                 <View className="items-center gap-3">
                   {badgeUrl(match.teams.away?.badge) ? (
-                    <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-20 h-20 rounded-full" contentFit="contain" transition={250} />
+                    <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-20 h-20 rounded-full" resizeMode="contain" />
                   ) : (
                     <View className="w-20 h-20 rounded-full bg-bgCard2 border border-stroke" />
                   )}

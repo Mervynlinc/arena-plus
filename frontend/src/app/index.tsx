@@ -56,7 +56,7 @@ export default function OnboardingScreen() {
   const finishOnboarding = () => {
     AsyncStorage.setItem(ONBOARDING_FLAG, 'true')
       .catch(() => {})
-      .finally(() => router.replace('/(tabs)'));
+      .finally(() => router.replace('/(auth)/signin'));
   };
 
   const goNext = () => {

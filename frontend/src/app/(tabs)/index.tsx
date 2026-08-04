@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useUser } from '@clerk/expo';
 import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
@@ -13,6 +14,7 @@ import MatchCardSkeleton from '@/components/skeletons/MatchCardSkeleton';
 import Reveal from '@/components/Reveal';
 
 export default function HomeScreen() {
+  const { user } = useUser();
   const [sports, setSports] = useState<Sport[]>([]);
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [popularMatches, setPopularMatches] = useState<Match[]>([]);
@@ -60,6 +62,11 @@ export default function HomeScreen() {
       .finally(() => setPopularLoading(false));
   }, [sports]);
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const name = user?.username ?? user?.firstName ?? 'there';
+
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -67,10 +74,10 @@ export default function HomeScreen() {
           <View className="px-6 flex-row justify-between items-center mb-7">
             <View className="gap-[2px]">
               <Text className="font-inter font-medium text-xs text-textSecondary">
-                Good evening
+                {greeting}
               </Text>
               <Text className="font-inter font-bold text-xl text-text">
-                Welcome back
+                {name}
               </Text>
             </View>
           </View>
