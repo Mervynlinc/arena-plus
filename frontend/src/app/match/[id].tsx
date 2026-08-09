@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,20 +7,22 @@ import { colors } from '@/constants/theme';
 import StreamRow from '@/components/StreamRow';
 import { fetchStreams, posterUrl, badgeUrl, Stream, Match } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
+import StreamRowSkeleton from '@/components/skeletons/StreamRowSkeleton';
+import Reveal from '@/components/Reveal';
 
 export default function MatchDetailScreen() {
   const { match: matchJson } = useLocalSearchParams<{ id: string; match?: string }>();
-  const match: Match | null = matchJson ? JSON.parse(matchJson) : null;
+  const match: Match | null = useMemo<Match | null>(
+    () => (matchJson ? JSON.parse(matchJson) : null),
+    [matchJson]
+  );
   const [streams, setStreams] = useState<Stream[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(match?.sources?.length));
 
   const imageUri = posterUrl(match?.poster);
 
   useEffect(() => {
-    if (!match?.sources?.length) {
-      setLoading(false);
-      return;
-    }
+    if (!match?.sources?.length) return;
     Promise.all(
       match.sources.map((s) => fetchStreams(s.source, s.id))
     )
@@ -39,24 +41,37 @@ export default function MatchDetailScreen() {
 
   return (
     <ScreenContainer>
-      <View className="relative">
+      <View className="relative" style={{ height: 340 }}>
         {imageUri && (
           <>
             <Image
               source={{ uri: imageUri }}
-              className="absolute inset-0"
-              style={{ width: '100%', height: 340 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: 340,
+              }}
               resizeMode="cover"
             />
             <LinearGradient
               colors={['rgba(10,10,12,0.35)', 'rgba(10,10,12,0.97)']}
               locations={[0.15, 1]}
-              className="absolute inset-0"
-              style={{ height: 340 }}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 340,
+              }}
             />
           </>
         )}
-        <View className="pt-[60px] px-6 pb-5" style={imageUri ? undefined : {}}>
+        <View className="pt-[60px] px-6 pb-5">
           <View className="flex-row items-center gap-4 mb-6">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -136,8 +151,10 @@ export default function MatchDetailScreen() {
           )}
         </View>
         {loading ? (
-          <View className="items-center pt-10">
-            <ActivityIndicator color={colors.accent} size="large" />
+          <View className="gap-[14px]">
+            <StreamRowSkeleton />
+            <StreamRowSkeleton />
+            <StreamRowSkeleton />
           </View>
         ) : streams.length === 0 ? (
           <View className="items-center pt-16">
@@ -149,15 +166,16 @@ export default function MatchDetailScreen() {
         ) : (
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="gap-[14px] pb-20">
-              {streams.map((stream) => (
-                <StreamRow
-                  key={`${stream.source}-${stream.streamNo}`}
-                  serverName={formatSourceName(stream.source)}
-                  quality={stream.hd ? 'HD' : 'SD'}
-                  language={stream.language ?? 'EN'}
-                  tag={stream.viewers ? `${stream.viewers} watching` : 'Available'}
-                  onPress={() => handleWatch(stream)}
-                />
+              {streams.map((stream, i) => (
+                <Reveal key={`${stream.source}-${stream.streamNo}`} delay={i * 40}>
+                  <StreamRow
+                    serverName={formatSourceName(stream.source)}
+                    quality={stream.hd ? 'HD' : 'SD'}
+                    language={stream.language ?? 'EN'}
+                    tag={stream.viewers ? `${stream.viewers} watching` : 'Available'}
+                    onPress={() => handleWatch(stream)}
+                  />
+                </Reveal>
               ))}
             </View>
           </ScrollView>

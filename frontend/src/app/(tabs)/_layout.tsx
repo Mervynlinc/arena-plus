@@ -1,8 +1,14 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
+import { useAuth } from '@clerk/expo';
 import { House, CalendarDays, TvMinimalPlay, Settings } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 
 export default function TabLayout() {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/signin" />;
+
   return (
     <Tabs
       screenOptions={{

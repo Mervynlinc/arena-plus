@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Search, X, ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
-import { fetchAllMatches, badgeUrl, AllMatchesResult, Match } from '@/lib/api';
+import { fetchSports, fetchMatchesBySport, badgeUrl, AllMatchesResult, Match } from '@/lib/api';
 import { formatDate } from '@/components/MatchCardPoster';
 import ScreenContainer from '@/components/ScreenContainer';
+import MatchRowSkeleton from '@/components/skeletons/MatchRowSkeleton';
+import Reveal from '@/components/Reveal';
 
 const DEBOUNCE_MS = 300;
 
@@ -27,8 +30,16 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAllMatches()
-      .then(setAllData)
+    fetchSports()
+      .then((sports) => {
+        sports.forEach((s) => {
+          fetchMatchesBySport(s.id)
+            .then((matches) =>
+              setAllData((prev) => [...prev, { sportId: s.id, sportName: s.name, matches }])
+            )
+            .catch(() => {});
+        });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -97,8 +108,11 @@ export default function SearchScreen() {
       <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View className="px-6 pb-20">
           {loading ? (
-            <View className="items-center pt-20">
-              <ActivityIndicator size="large" color={colors.accent} />
+            <View className="gap-3 pt-4">
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
+              <MatchRowSkeleton />
             </View>
           ) : debouncedQuery.trim().length > 0 && results.length === 0 ? (
             <View className="items-center pt-20">
@@ -116,59 +130,61 @@ export default function SearchScreen() {
               </Text>
             </View>
           ) : (
-            <View className="gap-3">
-              <Text className="font-inter font-semibold text-[13px] text-textSecondary mb-1">
-                {results.length} result{results.length !== 1 ? 's' : ''}
-              </Text>
-              {results.map(({ match, sportName }) => {
-                const { time, date: dateLabel } = formatDate(match.date);
-                return (
-                  <TouchableOpacity
-                    key={match.id}
-                    activeOpacity={0.8}
-                    className="p-[14px] px-4 flex-row justify-between items-center bg-bgCard2 border border-stroke rounded-[18px]"
-                    onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id, match: JSON.stringify(match) } })}
-                  >
-                    <View className="p-2 px-3 items-center gap-[2px]">
-                      <Text className="font-inter font-bold text-sm text-accent">{time}</Text>
-                      <Text className="font-inter font-medium text-[10px] text-textSecondary">{dateLabel}</Text>
-                    </View>
-                    {match.teams ? (
-                      <View className="flex-1 gap-[6px] px-3">
-                        <View className="flex-row items-center gap-2">
-                          {badgeUrl(match.teams.home?.badge) ? (
-                            <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
-                          ) : (
-                            <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
-                          )}
-                          <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={1}>{match.teams.home?.name}</Text>
-                        </View>
-                        <View className="flex-row items-center gap-2">
-                          {badgeUrl(match.teams.away?.badge) ? (
-                            <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" resizeMode="contain" />
-                          ) : (
-                            <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
-                          )}
-                          <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={1}>{match.teams.away?.name}</Text>
-                        </View>
+            <Reveal>
+              <View className="gap-3">
+                <Text className="font-inter font-semibold text-[13px] text-textSecondary mb-1">
+                  {results.length} result{results.length !== 1 ? 's' : ''}
+                </Text>
+                {results.map(({ match, sportName }) => {
+                  const { time, date: dateLabel } = formatDate(match.date);
+                  return (
+                    <TouchableOpacity
+                      key={match.id}
+                      activeOpacity={0.8}
+                      className="p-[14px] px-4 flex-row justify-between items-center bg-bgCard2 border border-stroke rounded-[18px]"
+                      onPress={() => router.push({ pathname: '/match/[id]', params: { id: match.id, match: JSON.stringify(match) } })}
+                    >
+                      <View className="p-2 px-3 items-center gap-[2px]">
+                        <Text className="font-inter font-bold text-sm text-accent">{time}</Text>
+                        <Text className="font-inter font-medium text-[10px] text-textSecondary">{dateLabel}</Text>
                       </View>
-                    ) : (
-                      <View className="flex-1 px-3">
-                        <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={2}>{match.title}</Text>
-                      </View>
-                    )}
-                    <View className="items-end gap-1">
-                      <Text className="font-inter font-medium text-[10px] text-textSecondary">{sportName}</Text>
-                      {match.minute && (
-                        <View className="px-[6px] py-[2px] bg-liveRed rounded-full">
-                          <Text className="font-inter font-bold text-[9px] text-white">LIVE</Text>
+                      {match.teams ? (
+                        <View className="flex-1 gap-[6px] px-3">
+                          <View className="flex-row items-center gap-2">
+                            {badgeUrl(match.teams.home?.badge) ? (
+                              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
+                            ) : (
+                              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+                            )}
+                            <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={1}>{match.teams.home?.name}</Text>
+                          </View>
+                          <View className="flex-row items-center gap-2">
+                            {badgeUrl(match.teams.away?.badge) ? (
+                              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-[18px] h-[18px] rounded-full" contentFit="contain" transition={250} />
+                            ) : (
+                              <View className="w-[18px] h-[18px] rounded-full bg-bgCard" />
+                            )}
+                            <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={1}>{match.teams.away?.name}</Text>
+                          </View>
+                        </View>
+                      ) : (
+                        <View className="flex-1 px-3">
+                          <Text className="font-inter font-semibold text-[13px] text-text" numberOfLines={2}>{match.title}</Text>
                         </View>
                       )}
-                    </View>
+                      <View className="items-end gap-1">
+                        <Text className="font-inter font-medium text-[10px] text-textSecondary">{sportName}</Text>
+                        {match.minute && (
+                          <View className="px-[6px] py-[2px] bg-liveRed rounded-full">
+                            <Text className="font-inter font-bold text-[9px] text-white">LIVE</Text>
+                          </View>
+                        )}
+                      </View>
                   </TouchableOpacity>
                 );
               })}
-            </View>
+              </View>
+            </Reveal>
           )}
         </View>
       </ScrollView>

@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image as RNImage } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { posterUrl, badgeUrl, Match } from '@/lib/api';
+import { posterUrl, badgeUrl, Match, MatchTeam } from '@/lib/api';
 import { sportEmoji } from '@/lib/sports';
 
 export const CARD_WIDTH = 200;
@@ -22,6 +23,15 @@ export function formatDate(timestamp: number): { date: string; time: string } {
     date: isToday ? 'Today' : `${d.getDate()} ${MONTHS[d.getMonth()]}`,
     time: `${hours}:${mins}`,
   };
+}
+
+function TeamBadge({ team }: { team: MatchTeam | undefined }) {
+  const uri = badgeUrl(team?.badge);
+  return uri ? (
+    <RNImage source={{ uri }} className="w-14 h-14 rounded-full" resizeMode="contain" />
+  ) : (
+    <View className="w-14 h-14 rounded-full bg-bgCard2 border border-stroke" />
+  );
 }
 
 interface Props {
@@ -50,27 +60,23 @@ export default function MatchCardPoster({ match, badge }: Props) {
           source={{ uri }}
           className="absolute inset-0"
           style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={250}
         />
       ) : hasTeams ? (
-        <View className="absolute inset-0 bg-bgCard2 items-center pt-5">
-          <View className="flex-row items-center gap-4">
-            {badgeUrl(match.teams.home?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.home?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
-            ) : (
-              <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
-            )}
+        <View className="absolute inset-0 bg-bgCard2 items-center justify-center">
+          <View className="flex-row items-center gap-3">
+            <TeamBadge team={match.teams.home} />
             <Text className="font-inter font-extrabold text-xl text-textMuted">VS</Text>
-            {badgeUrl(match.teams.away?.badge) ? (
-              <Image source={{ uri: badgeUrl(match.teams.away?.badge) }} className="w-14 h-14 rounded-full" resizeMode="contain" />
-            ) : (
-              <View className="w-14 h-14 rounded-full bg-bgCard border border-stroke" />
-            )}
+            <TeamBadge team={match.teams.away} />
           </View>
         </View>
       ) : (
         <View className="absolute inset-0 bg-bgCard2 items-center justify-center">
-          <Text className="text-5xl">{sportEmoji(match.category)}</Text>
+          <Text className="text-4xl mb-1">{sportEmoji(match.category)}</Text>
+          <Text className="font-inter font-semibold text-[10px] uppercase tracking-widest text-textSecondary">
+            {match.category?.replace(/-/g, ' ') ?? 'Event'}
+          </Text>
         </View>
       )}
       <LinearGradient

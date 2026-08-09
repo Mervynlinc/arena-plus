@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
+import SectionSkeleton from '@/components/skeletons/SectionSkeleton';
+import Reveal from '@/components/Reveal';
 
 function dedupeMatches(matches: Match[]): Match[] {
   const seen = new Set<string>();
@@ -53,36 +55,40 @@ export default function LiveScreen() {
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         {loading ? (
-          <View className="items-center pt-10">
-            <ActivityIndicator color={colors.accent} size="large" />
+          <View className="gap-0">
+            <SectionSkeleton count={2} />
+            <SectionSkeleton count={2} />
+            <SectionSkeleton count={2} />
           </View>
         ) : liveMatches.length === 0 ? (
           <View className="px-6">
             <Text className="font-inter text-sm text-textSecondary">No live matches currently</Text>
           </View>
         ) : (
-          sports.filter((s) => (matchesBySport[s.id]?.length ?? 0) > 0).map((sport) => (
-            <View key={sport.id} className="mb-6 pl-6">
-              <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
-                {sportNameMap[sport.id] ?? sport.id}
-              </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-3 pr-6">
-                  {matchesBySport[sport.id].map((match) => (
-                    <MatchCardPoster
-                      key={match.id}
-                      match={match}
-                      badge={
-                        <View className="px-2 py-1 bg-liveRed rounded-full">
-                          <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-white">LIVE</Text>
-                        </View>
-                      }
-                    />
-                  ))}
-                </View>
-              </ScrollView>
-            </View>
-          ))
+          <Reveal>
+            {sports.filter((s) => (matchesBySport[s.id]?.length ?? 0) > 0).map((sport) => (
+              <View key={sport.id} className="mb-6 pl-6">
+                <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
+                  {sportNameMap[sport.id] ?? sport.id}
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-3 pr-6">
+                    {matchesBySport[sport.id].map((match) => (
+                      <MatchCardPoster
+                        key={match.id}
+                        match={match}
+                        badge={
+                          <View className="px-2 py-1 bg-liveRed rounded-full">
+                            <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-white">LIVE</Text>
+                          </View>
+                        }
+                      />
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            ))}
+          </Reveal>
         )}
         <View className="h-10" />
       </ScrollView>

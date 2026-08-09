@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useUser } from '@clerk/expo';
 import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
@@ -8,8 +9,12 @@ import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, fetchPopularMatchesBySport, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
 import { sportEmoji } from '@/lib/sports';
+import SportTileSkeleton from '@/components/skeletons/SportTileSkeleton';
+import MatchCardSkeleton from '@/components/skeletons/MatchCardSkeleton';
+import Reveal from '@/components/Reveal';
 
 export default function HomeScreen() {
+  const { user } = useUser();
   const [sports, setSports] = useState<Sport[]>([]);
   const [liveMatches, setLiveMatches] = useState<Match[]>([]);
   const [popularMatches, setPopularMatches] = useState<Match[]>([]);
@@ -57,6 +62,11 @@ export default function HomeScreen() {
       .finally(() => setPopularLoading(false));
   }, [sports]);
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const name = user?.username ?? user?.firstName ?? 'there';
+
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -64,10 +74,10 @@ export default function HomeScreen() {
           <View className="px-6 flex-row justify-between items-center mb-7">
             <View className="gap-[2px]">
               <Text className="font-inter font-medium text-xs text-textSecondary">
-                Good evening
+                {greeting}
               </Text>
               <Text className="font-inter font-bold text-xl text-text">
-                Welcome back
+                {name}
               </Text>
             </View>
           </View>
@@ -84,20 +94,28 @@ export default function HomeScreen() {
               Sports
             </Text>
             {loading ? (
-              <ActivityIndicator color={colors.accent} />
-            ) : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                <View className="flex-row gap-3">
-                  {sports.map((sport) => (
-                    <SportCategoryTile
-                      key={sport.id}
-                      label={sport.name}
-                      emoji={sportEmoji(sport.id)}
-                      onPress={() => router.push(`/sport/${sport.id}` as any)}
-                    />
+                <View className="flex-row gap-3 pr-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <SportTileSkeleton key={i} />
                   ))}
                 </View>
               </ScrollView>
+            ) : (
+              <Reveal>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-3">
+                    {sports.map((sport) => (
+                      <SportCategoryTile
+                        key={sport.id}
+                        label={sport.name}
+                        emoji={sportEmoji(sport.id)}
+                        onPress={() => router.push(`/sport/${sport.id}` as any)}
+                      />
+                    ))}
+                  </View>
+                </ScrollView>
+              </Reveal>
             )}
           </View>
           <View className="pl-6 gap-[14px] mb-7">
@@ -115,7 +133,13 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {liveLoading ? (
-              <ActivityIndicator color={colors.accent} />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <MatchCardSkeleton key={i} />
+                  ))}
+                </View>
+              </ScrollView>
             ) : liveMatches.length === 0 ? (
               <Text className="font-inter text-sm text-textSecondary pr-6">
                 No live matches currently
@@ -123,18 +147,19 @@ export default function HomeScreen() {
             ) : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-3 pr-6">
-                  {liveMatches.map((match) => (
-                    <MatchCardPoster
-                      key={match.id}
-                      match={match}
-                      badge={
-                        <View className="px-2 py-1 bg-bgCard border border-stroke rounded-full">
-                          <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-textSecondary">
-                            {sportNameMap[match.category] ?? match.category}
-                          </Text>
-                        </View>
-                      }
-                    />
+                  {liveMatches.map((match, i) => (
+                    <Reveal key={match.id} delay={i * 40}>
+                      <MatchCardPoster
+                        match={match}
+                        badge={
+                          <View className="px-2 py-1 bg-bgCard border border-stroke rounded-full">
+                            <Text className="font-inter font-bold text-[10px] tracking-[0.3px] text-textSecondary">
+                              {sportNameMap[match.category] ?? match.category}
+                            </Text>
+                          </View>
+                        }
+                      />
+                    </Reveal>
                   ))}
                 </View>
               </ScrollView>
@@ -145,7 +170,13 @@ export default function HomeScreen() {
               Popular
             </Text>
             {popularLoading ? (
-              <ActivityIndicator color={colors.accent} />
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row gap-3 pr-6">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <MatchCardSkeleton key={i} />
+                  ))}
+                </View>
+              </ScrollView>
             ) : popularMatches.length === 0 ? (
               <Text className="font-inter text-sm text-textSecondary pr-6">
                 No popular matches
@@ -153,11 +184,10 @@ export default function HomeScreen() {
             ) : (
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View className="flex-row gap-3 pr-6">
-                  {popularMatches.map((match) => (
-                    <MatchCardPoster
-                      key={match.id}
-                      match={match}
-                    />
+                  {popularMatches.map((match, i) => (
+                    <Reveal key={match.id} delay={i * 40}>
+                      <MatchCardPoster match={match} />
+                    </Reveal>
                   ))}
                 </View>
               </ScrollView>

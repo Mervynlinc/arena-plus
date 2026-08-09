@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
-import { colors } from '@/constants/theme';
+import { View, Text, ScrollView } from 'react-native';
 import CategoryPill from '@/components/CategoryPill';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
+import SectionSkeleton from '@/components/skeletons/SectionSkeleton';
+import Reveal from '@/components/Reveal';
 
 const FILTERS = ['Today', 'Popular'] as const;
 type Filter = typeof FILTERS[number];
@@ -80,24 +81,28 @@ export default function WatchScreen() {
             ))}
           </View>
           {loading ? (
-            <View className="items-center pt-10">
-              <ActivityIndicator color={colors.accent} size="large" />
+            <View className="gap-0">
+              <SectionSkeleton count={2} />
+              <SectionSkeleton count={2} />
+              <SectionSkeleton count={2} />
             </View>
           ) : (
-            sports.filter((s) => hasMatches(s.id)).map((sport) => (
-              <View key={sport.id} className="mb-6 pl-6">
-                <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
-                  {sport.name}
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View className="flex-row gap-3 pr-6">
-                    {filteredMatches(sport.id).map((match) => (
-                      <MatchCardPoster key={match.id} match={match} />
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
-            ))
+            <Reveal>
+              {sports.filter((s) => hasMatches(s.id)).map((sport) => (
+                <View key={sport.id} className="mb-6 pl-6">
+                  <Text className="font-inter font-bold text-[17px] text-text mb-[14px]">
+                    {sport.name}
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row gap-3 pr-6">
+                      {filteredMatches(sport.id).map((match) => (
+                        <MatchCardPoster key={match.id} match={match} />
+                      ))}
+                    </View>
+                  </ScrollView>
+                </View>
+              ))}
+            </Reveal>
           )}
         </View>
       </ScrollView>
