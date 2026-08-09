@@ -1,6 +1,8 @@
 {
   "type": "module",
   "dependencies": {
+    "@clerk/express": "^2.1.49",
+    "@neondatabase/serverless": "^1.1.0",
     "axios": "^1.18.1",
     "cors": "^2.8.5",
     "express": "^5.2.1"
@@ -10,6 +12,8 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon --watch src --exec \"node --env-file=.env src/index.js\"",
+    "migrate": "node --env-file=.env scripts/migrate.js",
+    "sync": "node --env-file=.env scripts/sync-clerk-users.js"
   }
 }
