@@ -9,6 +9,7 @@ import { fetchStreams, posterUrl, badgeUrl, Stream, Match } from '@/lib/api';
 import ScreenContainer from '@/components/ScreenContainer';
 import StreamRowSkeleton from '@/components/skeletons/StreamRowSkeleton';
 import Reveal from '@/components/Reveal';
+import CountdownTimer from '@/components/CountdownTimer';
 
 export default function MatchDetailScreen() {
   const { match: matchJson } = useLocalSearchParams<{ id: string; match?: string }>();
@@ -18,6 +19,7 @@ export default function MatchDetailScreen() {
   );
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(() => Boolean(match?.sources?.length));
+  const [headerHeight, setHeaderHeight] = useState(340);
 
   const imageUri = posterUrl(match?.poster);
 
@@ -41,7 +43,7 @@ export default function MatchDetailScreen() {
 
   return (
     <ScreenContainer>
-      <View className="relative" style={{ height: 340 }}>
+      <View className="relative">
         {imageUri && (
           <>
             <Image
@@ -53,7 +55,7 @@ export default function MatchDetailScreen() {
                 right: 0,
                 bottom: 0,
                 width: '100%',
-                height: 340,
+                height: headerHeight,
               }}
               resizeMode="cover"
             />
@@ -66,12 +68,12 @@ export default function MatchDetailScreen() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: 340,
+                height: headerHeight,
               }}
             />
           </>
         )}
-        <View className="pt-[60px] px-6 pb-5">
+        <View className="pt-[60px] px-6 pb-5" onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}>
           <View className="flex-row items-center gap-4 mb-6">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -123,6 +125,7 @@ export default function MatchDetailScreen() {
               <Text className="font-inter font-medium text-sm text-textMuted">
                 {match.title}
               </Text>
+              <CountdownTimer target={match.date} />
             </View>
           ) : (
             <View className="items-center gap-4 px-4">
@@ -135,6 +138,7 @@ export default function MatchDetailScreen() {
               <Text className="font-inter font-bold text-2xl text-text text-center" numberOfLines={3}>
                 {match?.title}
               </Text>
+              <CountdownTimer target={match?.date ?? 0} />
             </View>
           )}
         </View>
