@@ -164,7 +164,7 @@ export default function SignInScreen() {
 
             <View className="flex-row justify-center items-center gap-1 mt-6">
               <Text className="font-inter font-normal text-sm text-textMuted">
-                New to Streamed?
+                New to Arena Plus?
               </Text>
               <TouchableOpacity onPress={() => router.push('/(auth)/signup')} activeOpacity={0.7}>
                 <Text className="font-inter font-semibold text-sm text-accent">

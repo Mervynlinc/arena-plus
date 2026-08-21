@@ -159,7 +159,7 @@ export default function SignUpScreen() {
               <Text className="font-inter font-normal text-sm leading-[21px] text-textMuted mt-3">
                 {isVerifying
                   ? `We sent a verification code to ${emailAddress}.`
-                  : 'Join Streamed to save your teams and never miss a game.'}
+                  : 'Join Arena Plus to save your teams and never miss a game.'}
               </Text>
             </View>
 
