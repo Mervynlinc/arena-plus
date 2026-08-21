@@ -5,6 +5,7 @@ import { Stack } from "expo-router";
 import { View } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import { Observe, ObserveRoot, useObserve } from "expo-observe";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
@@ -19,6 +20,10 @@ if (!publishableKey) {
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+Observe.configure({
+  integrations: { "expo-router": true },
+});
+
 interface RootNavigatorProps {
   fontsLoaded: boolean;
 }
@@ -26,6 +31,7 @@ interface RootNavigatorProps {
 function RootNavigator({ fontsLoaded }: RootNavigatorProps) {
   const { isLoaded, isSignedIn } = useAuth();
   const [hasOnboarded, setHasOnboarded] = useState<boolean | null>(null);
+  const { markInteractive } = useObserve();
 
   useEffect(() => {
     AsyncStorage.getItem(ONBOARDING_FLAG)
@@ -35,9 +41,11 @@ function RootNavigator({ fontsLoaded }: RootNavigatorProps) {
 
   useEffect(() => {
     if (fontsLoaded && hasOnboarded !== null && isLoaded) {
-      SplashScreen.hideAsync().catch(() => {});
+      SplashScreen.hideAsync()
+        .catch(() => {})
+        .finally(() => markInteractive());
     }
-  }, [fontsLoaded, hasOnboarded, isLoaded]);
+  }, [fontsLoaded, hasOnboarded, isLoaded, markInteractive]);
 
   if (!fontsLoaded || hasOnboarded === null || !isLoaded) return null;
 
@@ -63,7 +71,7 @@ function RootNavigator({ fontsLoaded }: RootNavigatorProps) {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({
     BebasNeue: require("../../assets/fonts/BebasNeue-Regular.ttf"),
   });
@@ -74,3 +82,5 @@ export default function RootLayout() {
     </ClerkProvider>
   );
 }
+
+export default ObserveRoot.wrap(RootLayout);
