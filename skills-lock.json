@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "app-icon": {
+      "source": "code-with-beto/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/cwb-app-icon/skills/app-icon/SKILL.md",
+      "computedHash": "8b91c8b648c737789f68fa97e37f05ad0885fdbad55d921dcdd276de23802e69"
+    }
+  }
+}
