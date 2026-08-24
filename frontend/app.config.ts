@@ -26,6 +26,7 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      "./plugins/withAndroidSplits",
       "expo-router",
       "@clerk/expo-google-signin",
       [
