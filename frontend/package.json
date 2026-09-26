@@ -1,7 +1,7 @@
 {
   "name": "streamed",
   "main": "expo-router/entry",
-  "version": "2.0.0",
+  "version": "2.3.7",
   "dependencies": {
     "@clerk/expo": "^4.2.0",
     "@clerk/expo-google-signin": "^1.0.0",

@@ -4,7 +4,7 @@ export default {
   expo: {
     name: "Arena Plus",
     slug: "streamed",
-    version: "2.0.0",
+    version: "2.3.7",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "streamed",
