@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import { fetchMatchesBySport, fetchPopularMatchesBySport, fetchLiveMatches, badgeUrl, Match } from '@/lib/api';
+import { toUserMessage, logInternalError } from '@/lib/apiError';
 import MatchCardPoster, { formatDate } from '@/components/MatchCardPoster';
 import ScreenContainer from '@/components/ScreenContainer';
 import MatchCardSkeleton from '@/components/skeletons/MatchCardSkeleton';
@@ -79,14 +80,38 @@ export default function SportMatchesScreen() {
   const [popularLoading, setPopularLoading] = useState(true);
   const [liveLoading, setLiveLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  const retry = useCallback(() => setRetryNonce((n) => n + 1), []);
+
+  const requestKey = `${id ?? ''}:${retryNonce}`;
+  const [syncedKey, setSyncedKey] = useState(requestKey);
+
+  if (syncedKey !== requestKey) {
+    setSyncedKey(requestKey);
+    setMatches([]);
+    setError(null);
+    setLoading(true);
+  }
 
   useEffect(() => {
     if (!id) return;
+    let active = true;
     fetchMatchesBySport(id)
-      .then(setMatches)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .then((ms) => {
+        if (active) setMatches(ms);
+      })
+      .catch((e) => {
+        logInternalError(e, 'fetchMatchesBySport');
+        if (active) setError(toUserMessage(e));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id, retryNonce]);
 
   useEffect(() => {
     if (!id) return;
@@ -188,7 +213,17 @@ export default function SportMatchesScreen() {
               <MatchRowSkeleton />
             </View>
           ) : error ? (
-            <Text className="font-inter text-sm text-red-500">{error}</Text>
+            <View className="items-center py-10">
+              <Text className="font-inter text-sm text-textSecondary text-center">{error}</Text>
+              <TouchableOpacity
+                onPress={retry}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                className="mt-4 px-5 py-2.5 rounded-full border border-stroke"
+              >
+                <Text className="font-inter text-[13px] font-semibold text-accent">Try again</Text>
+              </TouchableOpacity>
+            </View>
           ) : matches.length === 0 ? (
             <Text className="font-inter text-sm text-textSecondary">No matches found</Text>
           ) : (

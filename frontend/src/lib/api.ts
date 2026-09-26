@@ -1,4 +1,7 @@
+import { ApiError, logInternalError, type ApiErrorCode } from "./apiError";
+
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
+const REQUEST_TIMEOUT_MS = 8000;
 
 export interface Sport {
   id: string;
@@ -38,51 +41,48 @@ interface MatchesResponse {
   total: number;
 }
 
+async function request<T>(path: string, code: ApiErrorCode): Promise<T> {
+  if (!API_BASE) throw new ApiError("CONFIG_MISSING");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { signal: controller.signal });
+    if (!res.ok) throw new ApiError(code, res.status);
+    return (await res.json()) as T;
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    logInternalError(err, path);
+    throw new ApiError("OFFLINE");
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchSports(): Promise<Sport[]> {
-  if (!API_BASE) {
-    throw new Error('EXPO_PUBLIC_API_BASE is not defined');
-  }
-  const res = await fetch(`${API_BASE}/sports`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch sports: ${res.status}`);
-  }
-  const data: SportsResponse = await res.json();
+  const data = await request<SportsResponse>("/sports", "SPORTS_UNAVAILABLE");
   return data.sports;
 }
 
 export async function fetchMatchesBySport(sportId: string): Promise<Match[]> {
-  if (!API_BASE) {
-    throw new Error('EXPO_PUBLIC_API_BASE is not defined');
-  }
-  const res = await fetch(`${API_BASE}/matches/${sportId}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch matches for ${sportId}: ${res.status}`);
-  }
-  const data: MatchesResponse = await res.json();
+  const data = await request<MatchesResponse>(
+    `/matches/${encodeURIComponent(sportId)}`,
+    "MATCHES_UNAVAILABLE"
+  );
   return data.matches;
 }
 
 export async function fetchPopularMatchesBySport(sportId: string): Promise<Match[]> {
-  if (!API_BASE) {
-    throw new Error('EXPO_PUBLIC_API_BASE is not defined');
-  }
-  const res = await fetch(`${API_BASE}/matches/${sportId}/popular`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch popular matches for ${sportId}: ${res.status}`);
-  }
-  const data: MatchesResponse = await res.json();
+  const data = await request<MatchesResponse>(
+    `/matches/${encodeURIComponent(sportId)}/popular`,
+    "MATCHES_UNAVAILABLE"
+  );
   return data.matches;
 }
 
 export async function fetchLiveMatches(): Promise<Match[]> {
-  if (!API_BASE) {
-    throw new Error('EXPO_PUBLIC_API_BASE is not defined');
-  }
-  const res = await fetch(`${API_BASE}/matches/live`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch live matches: ${res.status}`);
-  }
-  const data: MatchesResponse = await res.json();
+  const data = await request<MatchesResponse>("/matches/live", "MATCHES_UNAVAILABLE");
   return data.matches;
 }
 
@@ -96,7 +96,7 @@ export interface Stream {
   viewers?: number;
 }
 
-const STREAM_SOURCES = ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel', 'intel', 'admin'];
+const STREAM_SOURCES = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "intel", "admin"];
 
 export interface AllMatchesResult {
   sportId: string;
@@ -121,14 +121,19 @@ export async function fetchAllMatches(): Promise<AllMatchesResult[]> {
 
 export async function fetchStreams(source: string, sourceId: string): Promise<Stream[]> {
   if (!API_BASE || !STREAM_SOURCES.includes(source)) return [];
-  const res = await fetch(`${API_BASE}/stream/${source}/${sourceId}`);
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    return await request<Stream[]>(
+      `/stream/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}`,
+      "STREAMS_UNAVAILABLE"
+    );
+  } catch {
+    return [];
+  }
 }
 
 export function posterUrl(path: string | undefined): string | undefined {
   if (!path || !API_BASE) return undefined;
-  return `${API_BASE.replace(/\/api$/, '')}${path}`;
+  return `${API_BASE.replace(/\/api$/, "")}${path}`;
 }
 
 export function badgeUrl(id: string | undefined): string | undefined {
