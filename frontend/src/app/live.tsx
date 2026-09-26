@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react-native';
 import { colors } from '@/constants/theme';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
+import { logInternalError } from '@/lib/apiError';
 import ScreenContainer from '@/components/ScreenContainer';
 import SectionSkeleton from '@/components/skeletons/SectionSkeleton';
 import Reveal from '@/components/Reveal';
@@ -29,7 +30,7 @@ export default function LiveScreen() {
         setSports(sportList);
         setLiveMatches(dedupeMatches(liveList));
       })
-      .catch(console.error)
+      .catch((e) => logInternalError(e, 'fetchLiveScreenData'))
       .finally(() => setLoading(false));
   }, []);
 

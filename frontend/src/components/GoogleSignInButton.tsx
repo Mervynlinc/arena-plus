@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSignInWithGoogle } from '@clerk/expo/google';
 import GoogleIcon from '@/components/GoogleIcon';
+import { getFriendlyAuthError, logAuthError } from '@/lib/authErrors';
 
 const MIN_USERNAME = 4;
 const MAX_USERNAME = 64;
@@ -75,7 +76,8 @@ export default function GoogleSignInButton() {
               message.includes('already taken') ||
               message.includes('is taken');
             if (taken) continue;
-            setError(err.message || 'Could not sign in with Google.');
+            logAuthError(err);
+            setError(getFriendlyAuthError(err));
             return;
           }
         }
@@ -88,7 +90,8 @@ export default function GoogleSignInButton() {
     } catch (e) {
       const err = e as { code?: string; message?: string };
       if (err.code === 'SIGN_IN_CANCELLED' || err.code === '-5') return;
-      setError(err.message || 'Could not sign in with Google.');
+      logAuthError(err);
+      setError(getFriendlyAuthError(err));
     } finally {
       setPending(false);
     }

@@ -7,6 +7,7 @@ import { colors } from '@/constants/theme';
 import SportCategoryTile from '@/components/SportCategoryTile';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, fetchPopularMatchesBySport, Match, Sport } from '@/lib/api';
+import { logInternalError } from '@/lib/apiError';
 import ScreenContainer from '@/components/ScreenContainer';
 import { sportEmoji } from '@/lib/sports';
 import SportTileSkeleton from '@/components/skeletons/SportTileSkeleton';
@@ -31,14 +32,14 @@ export default function HomeScreen() {
         data.forEach((s) => { map[s.id] = s.name; });
         setSportNameMap(map);
       })
-      .catch(console.error)
+      .catch((e) => logInternalError(e, 'fetchSports'))
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     fetchLiveMatches()
       .then(setLiveMatches)
-      .catch(console.error)
+      .catch((e) => logInternalError(e, 'fetchLiveMatches'))
       .finally(() => setLiveLoading(false));
   }, []);
 
@@ -58,7 +59,7 @@ export default function HomeScreen() {
         });
         setPopularMatches(all);
       })
-      .catch(console.error)
+      .catch((e) => logInternalError(e, 'fetchPopularMatches'))
       .finally(() => setPopularLoading(false));
   }, [sports]);
 

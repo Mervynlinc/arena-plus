@@ -37,9 +37,8 @@ yarn-error.*
 *.tsbuildinfo
 
 example
-arenaplus-notifications-firebase-adminsdk-fbsvc-9e44e0cbcd.json
 
 # generated native folders
-google-services.json
 /ios
 /android
+arenaplus-notifications-firebase-adminsdk-fbsvc-9e44e0cbcd

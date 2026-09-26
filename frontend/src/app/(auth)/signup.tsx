@@ -14,6 +14,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import Button from '@/components/Button';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 import ScreenContainer from '@/components/ScreenContainer';
+import { getFriendlyAuthError, logAuthError } from '@/lib/authErrors';
 
 export default function SignUpScreen() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -46,7 +47,8 @@ export default function SignUpScreen() {
       password,
     });
     if (signUpError) {
-      setError(signUpError.longMessage || signUpError.message);
+      logAuthError(signUpError);
+      setError(getFriendlyAuthError(signUpError));
       setPending(false);
       return;
     }
@@ -54,7 +56,8 @@ export default function SignUpScreen() {
     if (signUp.status === 'complete') {
       const { error: finalizeError } = await signUp.finalize();
       if (finalizeError) {
-        setError(finalizeError.longMessage || finalizeError.message);
+        logAuthError(finalizeError);
+        setError(getFriendlyAuthError(finalizeError));
         setPending(false);
         return;
       }
@@ -70,14 +73,15 @@ export default function SignUpScreen() {
 
     const missingFields = (signUp.missingFields ?? []).filter((field) => field !== 'email_address');
     if (missingFields.length > 0) {
-      setError(`Missing required information: ${missingFields.join(', ')}.`);
+      setError('Please complete all required fields.');
       setPending(false);
       return;
     }
 
     const { error: sendError } = await signUp.verifications.sendEmailCode();
     if (sendError) {
-      setError(sendError.longMessage || sendError.message);
+      logAuthError(sendError);
+      setError(getFriendlyAuthError(sendError));
       setPending(false);
       return;
     }
@@ -93,7 +97,8 @@ export default function SignUpScreen() {
 
     const { error: verifyError } = await signUp.verifications.verifyEmailCode({ code });
     if (verifyError) {
-      setError(verifyError.longMessage || verifyError.message);
+      logAuthError(verifyError);
+      setError(getFriendlyAuthError(verifyError));
       setPending(false);
       return;
     }
@@ -101,7 +106,8 @@ export default function SignUpScreen() {
     if (signUp.status === 'complete') {
       const { error: finalizeError } = await signUp.finalize();
       if (finalizeError) {
-        setError(finalizeError.longMessage || finalizeError.message);
+        logAuthError(finalizeError);
+        setError(getFriendlyAuthError(finalizeError));
         setPending(false);
         return;
       }
@@ -117,7 +123,7 @@ export default function SignUpScreen() {
 
     const missingFields = (signUp.missingFields ?? []).filter((field) => field !== 'email_address');
     if (missingFields.length > 0) {
-      setError(`Missing required information: ${missingFields.join(', ')}.`);
+      setError('Please complete all required fields.');
       setPending(false);
       return;
     }

@@ -1,8 +1,10 @@
+import GoogleIcon from "@/components/GoogleIcon";
+
 export default {
   expo: {
     name: "Arena Plus",
     slug: "streamed",
-    version: "2.0.0",
+    version: "2.3.7",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "streamed",
@@ -17,6 +19,7 @@ export default {
         backgroundImage: "./assets/images/android-icon-background.png",
         monochromeImage: "./assets/images/android-icon-monochrome.png",
       },
+      googleServicesFile: "./google-services.json",
       predictiveBackGestureEnabled: false,
       package: "com.mervynlinc.streamed",
     },
@@ -26,6 +29,8 @@ export default {
       favicon: "./assets/images/favicon.png",
     },
     plugins: [
+      "./plugins/withAndroidSplits",
+      "expo-font",
       "expo-router",
       "@clerk/expo-google-signin",
       [
@@ -33,6 +38,7 @@ export default {
         {
           android: {
             extraMavenRepos: ["https://maven.mozilla.org/maven2/"],
+            package: "dev.expo.streamed",
           },
         },
       ],
@@ -46,6 +52,12 @@ export default {
       ],
       "expo-image",
       "expo-status-bar",
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/images/icon.png",
+        },
+      ],
       "@clerk/expo",
       "expo-secure-store",
       "@clerk/expo-google-signin",
@@ -54,6 +66,12 @@ export default {
       typedRoutes: true,
       reactCompiler: true,
     },
+    updates: {
+          url: 'https://u.expo.dev/7357ca3d-a5c7-4265-a0b4-81f1df6ca922',
+        },
+        runtimeVersion: {
+          policy: 'appVersion',
+        },
     extra: {
       router: {},
       eas: {

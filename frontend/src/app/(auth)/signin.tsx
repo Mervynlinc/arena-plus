@@ -14,6 +14,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import Button from '@/components/Button';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 import ScreenContainer from '@/components/ScreenContainer';
+import { getFriendlyAuthError, logAuthError } from '@/lib/authErrors';
 
 export default function SignInScreen() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -40,7 +41,8 @@ export default function SignInScreen() {
 
     const { error: signInError } = await signIn.password({ identifier, password });
     if (signInError) {
-      setError(signInError.longMessage || signInError.message);
+      logAuthError(signInError);
+      setError(getFriendlyAuthError(signInError));
       setPending(false);
       return;
     }
@@ -48,7 +50,8 @@ export default function SignInScreen() {
     if (signIn.status === 'complete') {
       const { error: finalizeError } = await signIn.finalize();
       if (finalizeError) {
-        setError(finalizeError.longMessage || finalizeError.message);
+        logAuthError(finalizeError);
+        setError(getFriendlyAuthError(finalizeError));
         setPending(false);
         return;
       }
