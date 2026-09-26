@@ -3,6 +3,7 @@ import { View, Text, ScrollView } from 'react-native';
 import CategoryPill from '@/components/CategoryPill';
 import MatchCardPoster from '@/components/MatchCardPoster';
 import { fetchSports, fetchLiveMatches, Match, Sport } from '@/lib/api';
+import { logInternalError } from '@/lib/apiError';
 import ScreenContainer from '@/components/ScreenContainer';
 import SectionSkeleton from '@/components/skeletons/SectionSkeleton';
 import Reveal from '@/components/Reveal';
@@ -44,7 +45,7 @@ export default function WatchScreen() {
         setSports(sportList);
         setLiveMatches(liveList);
       })
-      .catch(console.error)
+      .catch((e) => logInternalError(e, 'fetchWatchData'))
       .finally(() => setLoading(false));
   }, []);
 

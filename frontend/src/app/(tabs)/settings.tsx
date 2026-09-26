@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EditNameDialog from '@/components/EditNameDialog';
 import ScreenContainer from '@/components/ScreenContainer';
+import { getFriendlyAuthError, logAuthError } from '@/lib/authErrors';
+import { useNotifications } from '../../../context/NotificationContext';
 
 interface SettingRowProps {
   label: string;
@@ -14,6 +16,8 @@ interface SettingRowProps {
   destructive?: boolean;
   onPress?: () => void;
   children?: React.ReactNode;
+  showDivider?: boolean;
+  disabled?: boolean;
 }
 
 function SettingRow({
@@ -24,6 +28,8 @@ function SettingRow({
   destructive,
   onPress,
   children,
+  showDivider = true,
+  disabled = false,
 }: SettingRowProps) {
   const content = (
     <>
@@ -49,20 +55,28 @@ function SettingRow({
               className={`w-[14px] h-[14px] rounded-full ${toggleOn ? 'bg-bgCard' : 'bg-textSecondary'}`}
             />
           </View>
-        ) : (
+        ) : value ? (
           <Text className="font-inter font-normal text-[13px] text-textMuted">
             {value} ›
           </Text>
-        )}
+        ) : null}
       </View>
-      <View className="h-[1px] bg-stroke ml-5" />
+      {showDivider ? <View className="h-[1px] bg-stroke ml-5" /> : null}
     </>
   );
 
   return (
     <View className="px-4">
       {onPress ? (
-        <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={onPress}
+          activeOpacity={0.7}
+          disabled={disabled}
+          accessibilityRole={hasToggle ? 'switch' : undefined}
+          accessibilityState={
+            hasToggle ? { checked: Boolean(toggleOn), disabled } : undefined
+          }
+        >
           {content}
         </TouchableOpacity>
       ) : (
@@ -75,6 +89,13 @@ function SettingRow({
 export default function SettingsScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
+  const {
+    preferences,
+    preferencesLoaded,
+    updatingPreference,
+    error: notificationError,
+    setMatchRemindersEnabled,
+  } = useNotifications();
   const [name, setName] = useState(user?.username ?? '');
   const [nameDialogVisible, setNameDialogVisible] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -106,7 +127,8 @@ export default function SettingsScreen() {
       setName(updated.username ?? trimmed);
       setNameDialogVisible(false);
     } catch (e) {
-      setError((e as { message?: string }).message ?? 'Could not save name.');
+      logAuthError(e);
+      setError(getFriendlyAuthError(e));
     } finally {
       setSaving(false);
     }
@@ -130,16 +152,18 @@ export default function SettingsScreen() {
     } catch (e) {
       setBusy(false);
       setConfirm(null);
-      setError((e as { message?: string }).message ?? 'Could not delete account.');
+      logAuthError(e);
+      setError(getFriendlyAuthError(e));
     }
   };
 
   const isDelete = confirm === 'delete';
+  const notificationsDisabled = !preferencesLoaded || updatingPreference;
 
   return (
     <ScreenContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="pt-4">
+        <View className="pt-4 pb-[100px]">
           <View className="flex-row p-3 px-4 items-center gap-[22px] ">
             <View className="w-12 h-12 rounded-full bg-accent justify-center items-center">
               <Text className="font-inter font-bold text-lg text-bg">
@@ -174,24 +198,36 @@ export default function SettingsScreen() {
               </Text>
             ) : null}
           </View>
-          <View className="px-4 pt-8">
-            <Text className="font-inter font-bold text-[11px] text-textSecondary mb-4">
+          <View className="px-4 pt-7">
+            <Text className="font-inter font-bold text-[11px] text-textSecondary mb-3">
               NOTIFICATIONS
             </Text>
-            <View className="bg-bgCard rounded-[20px] overflow-hidden w-[358px]">
-              <SettingRow label="Match Reminders" hasToggle toggleOn />
-              <SettingRow label="Score Alerts" hasToggle toggleOn />
-              <SettingRow label="News & Updates" hasToggle toggleOn={false} />
+            <View className="bg-bgCard rounded-[20px] overflow-hidden w-full">
+              <SettingRow
+                label="Match Reminders"
+                hasToggle
+                toggleOn={preferences.matchRemindersEnabled}
+                onPress={() => {
+                  void setMatchRemindersEnabled(!preferences.matchRemindersEnabled);
+                }}
+                disabled={notificationsDisabled}
+                showDivider={false}
+              />
             </View>
+            {notificationError ? (
+              <Text className="font-inter font-normal text-[13px] leading-[18px] text-liveRed mt-3">
+                {notificationError}
+              </Text>
+            ) : null}
           </View>
-          <View className="px-4 pt-8">
-            <Text className="font-inter font-bold text-[11px] text-textSecondary mb-4">
+          <View className="px-4 pt-7">
+            <Text className="font-inter font-bold text-[11px] text-textSecondary mb-3">
               ABOUT
             </Text>
-            <View className="bg-bgCard rounded-[20px] overflow-hidden w-[358px]">
+            <View className="bg-bgCard rounded-[20px] overflow-hidden w-full">
               <SettingRow label="Version" value="2.0.0" />
-              <SettingRow label="Terms of Service" value="" />
-              <SettingRow label="Privacy Policy" value="" />
+              <SettingRow label="Terms of Service" />
+              <SettingRow label="Privacy Policy" showDivider={false} />
             </View>
           </View>
         </View>
