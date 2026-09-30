@@ -9,7 +9,6 @@
     "@kauza/react-native-geckoview": "^2.0.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@tailwindcss/postcss": "^4.3.2",
-    "eas-cli": "^21.4.0",
     "expo": "~57.0.25",
     "expo-build-properties": "~57.0.22",
     "expo-constants": "~57.0.19",
